@@ -1,0 +1,219 @@
+/* =========================================================
+   FORMATO "FLETE DE MADERA EN ROLLO" — recreación fiel del
+   comprobante de referencia (foto). No usa los colores/estilos
+   de formato.css (Extracción): es un documento distinto, más
+   sobrio, pensado para imprimirse en hoja completa.
+   ========================================================= */
+
+.ft-hoja{
+  width: 19cm;
+  background: #fff;
+  margin: 0 auto;
+  position: relative;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #111;
+  box-sizing: border-box;
+  padding: 1cm 1.2cm;
+}
+.ft-hoja *{ box-sizing: border-box; }
+
+.ft-encabezado{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3cm;
+  margin-bottom: 0.4cm;
+}
+
+.ft-titulo-box{
+  position: relative;
+  border: 1.4px solid #2f6fa8;
+  border-radius: 7px 3px 8px 4px / 4px 8px 3px 7px;
+  padding: 0.45cm 0.85cm;
+  text-align: center;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1.28;
+  color: #1c1c1c;
+  background: #fff;
+}
+/* Medio círculo azul: se ve como si fuera un círculo completo detrás
+   del cuadro y, justo desde la mitad, empezara el cuadro del título
+   (la mitad izquierda queda visible, la derecha queda "debajo" del
+   cuadro). Elemento puramente decorativo. */
+.ft-titulo-box::before{
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  width: 2.6cm;
+  height: 5.2cm;
+  border-top-left-radius: 2.6cm;
+  border-bottom-left-radius: 2.6cm;
+  background: rgba(158, 202, 235, 0.65);
+  transform: translateY(-50%);
+  z-index: -1;
+}
+
+.ft-logo-decor{
+  position: relative;
+  width: 3.6cm;
+  height: 3.6cm;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+/* Halos decorativos concéntricos alrededor del logo, muy tenues, solo
+   para dar profundidad; no son un marco ni alteran el logotipo. */
+.ft-logo-halo{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+}
+.ft-logo-halo-1{
+  width: 4.6cm;
+  height: 4.6cm;
+  background: rgba(174, 212, 238, 0.22);
+}
+.ft-logo-halo-2{
+  width: 5.7cm;
+  height: 5.7cm;
+  background: rgba(174, 212, 238, 0.1);
+}
+
+.ft-logo-wrap{
+  width: 3.6cm;
+  height: 3.6cm;
+  border-radius: 50%;
+  border: 1.6px solid #2f6fa8;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2cm;
+  /* El degradado hacia adentro, en azul, va aquí (alrededor del
+     logo.png), no en el cuadro del título. */
+  box-shadow: inset 0 0 0.45cm 0.05cm rgba(146, 196, 232, 0.55), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+.ft-logo-wrap img{ width: 100%; height: 100%; object-fit: contain; }
+.ft-logo-wrap .ft-logo-fallback{ font-size: 9px; color:#888; text-align:center; }
+
+.ft-fletero{
+  text-align: center;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 20px;
+  color: #2e86c1;
+  margin: 0.15cm 0 0.5cm 0;
+}
+
+.ft-fecha-box{
+  display: inline-block;
+  border: 1.5px solid #2f6fa8;
+  border-radius: 2px;
+  padding: 0.14cm 0.45cm;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 0.4cm;
+  letter-spacing: 0.2px;
+  background: rgba(174, 212, 238, 0.3);
+}
+
+table.ft-tabla{
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+table.ft-tabla th, table.ft-tabla td{
+  border: 1px solid #111;
+  padding: 0.16cm 0.22cm;
+  overflow: hidden;
+}
+table.ft-tabla th{
+  font-weight: 700;
+  text-transform: uppercase;
+  text-align: left;
+  white-space: nowrap;
+}
+table.ft-tabla th.ft-num, table.ft-tabla td.ft-num{ text-align: right; }
+table.ft-tabla td{ overflow-wrap: break-word; }
+
+/* La tabla se divide en dos: encabezado y cuerpo, con una separación
+   entre ambas (en vez de una sola tabla continua). Las dos comparten
+   exactamente el mismo <colgroup> (mismos porcentajes) para que las
+   columnas de una y otra queden perfectamente alineadas; table-layout:
+   fixed evita que el contenido de cada tabla las recalcule por separado
+   y las descuadre. */
+.ft-tabla-head{ margin-bottom: 0.22cm; }
+.ft-tabla-head th{ background: rgba(174, 212, 238, 0.4); border-bottom-width: 1.6px; }
+.ft-tabla-body{ margin-bottom: 0.6cm; }
+
+/* Franjas de lectura: empieza en azul desde el primer viaje y alterna. */
+.ft-fila-azul td{ background: rgba(174, 212, 238, 0.22); }
+.ft-fila-blanca td{ background: #fff; }
+
+.ft-subtotal-cell{ white-space: nowrap; }
+.ft-subtotal-badge{
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  border: 1.2px solid #2e9e5b;
+  border-radius: 4px;
+  padding: 0.02cm 0.16cm;
+  font-weight: 700;
+}
+.ft-subtotal-badge .ft-check{ color: #2e9e5b; font-weight: 900; }
+
+.ft-totales{
+  width: 100%;
+  margin: 0 0 0.55cm 0;
+  font-size: 13px;
+}
+.ft-totales tr td{ padding: 0.09cm 0.1cm; }
+.ft-totales tr td.ft-label{ font-weight: 700; text-transform: uppercase; }
+.ft-totales tr td.ft-val{ text-align: right; font-weight: 700; white-space: nowrap; }
+.ft-totales tr td.ft-num-izq{ text-align: right; font-weight: 700; white-space: nowrap; padding-right: 0.3cm; }
+
+.ft-resumen{
+  width: 100%;
+  margin: 0 0 0.4cm 0;
+  font-size: 13px;
+}
+.ft-resumen tr td{ padding: 0.1cm 0.1cm; }
+.ft-resumen tr td.ft-label{ font-weight: 700; text-transform: uppercase; }
+.ft-resumen tr td.ft-val{ text-align: right; font-weight: 700; white-space: nowrap; }
+.ft-resumen tr.ft-total td{ border-top: 1px solid #999; font-weight: 900; padding-top: 0.16cm; }
+
+.ft-saldo{
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5cm;
+  font-weight: 900;
+  font-size: 15px;
+  text-transform: uppercase;
+  margin: 0.2cm 0 0.3cm 0;
+}
+.ft-saldo .ft-val{ text-decoration: underline; text-underline-offset: 3px; }
+
+.ft-footer-space{ height: 0.3cm; }
+
+@media print{
+  html, body{ background: #fff; }
+  .no-imprimir{ display: none !important; }
+  .ft-hoja, .ft-hoja *{
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  .ft-hoja{ margin: 0 auto; box-shadow: none !important; zoom: 1.3; }
+  @page{ size: auto; margin: 6mm; }
+}

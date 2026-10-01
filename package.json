@@ -1,0 +1,75 @@
+{
+  "name": "fletes-v2",
+  "version": "0.1.0",
+  "description": "App de Forestal Tezains (Extracción y Fletes) con base de datos en Supabase en tiempo real; la versión de escritorio sigue funcionando sin internet y sincroniza sola al reconectar.",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "vite",
+    "dev:copia": "vite --mode copia",
+    "build": "vite build",
+    "preview": "vite preview",
+    "electron:dev": "npm run build && electron .",
+    "electron:build": "npm run build && electron-builder --win --publish never"
+  },
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@heroui/react": "^2.8.10",
+    "@supabase/supabase-js": "^2.116.0",
+    "dexie": "^4.4.6",
+    "framer-motion": "^11.18.2",
+    "immer": "^11.1.18",
+    "lucide-react": "^1.46.0",
+    "react": "^18.3.1",
+    "react-colorful": "^5.8.1",
+    "react-dom": "^18.3.1",
+    "react-moveable": "^0.56.0",
+    "react-router-dom": "^6.26.2",
+    "react-selecto": "^1.26.3",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@prisma/client": "6.19.3",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "electron": "^44.4.0",
+    "electron-builder": "^26.15.3",
+    "postcss": "^8.4.47",
+    "prisma": "6.19.3",
+    "tailwindcss": "^3.4.13",
+    "vite": "^5.4.8"
+  },
+  "build": {
+    "appId": "com.forestaltezains.fletesv2",
+    "productName": "Forestal Tezains",
+    "copyright": "Forestal Tezains",
+    "asar": true,
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "package.json",
+      "!electron/assets/logo.png"
+    ],
+    "directories": {
+      "output": "C:\\builds\\fletes-v2\\release"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "electron/assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  }
+}

@@ -1,0 +1,113 @@
+// Esquema de Prisma para el proyecto de Supabase de fletes-v2 (separado
+// por completo del proyecto de Supabase que usa extraccion-app, para no
+// interferir con los datos reales de la secretaria).
+//
+// Los campos siguen la misma forma que ya usaba la app con SQLite
+// (db/database.js, db/formatos.js, db/fletes.js) a propósito: listas de
+// largo variable (géneros, ajustes, líneas de viaje) siguen viviendo como
+// JSON, no como tablas relacionales aparte. Esto evita tener que cambiar
+// la lógica de negocio (src/lib/calc.js y las pantallas) — solo cambia
+// DÓNDE vive el dato, no su forma.
+//
+// datasource usa DIRECT_URL para migraciones (conexión directa a
+// Postgres) y DATABASE_URL para el cliente en tiempo de ejecución
+// (a través del pooler de Supabase, "Transaction" mode) — ver .env.example.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Formato {
+  id           Int      @id @default(autoincrement())
+  folio        String?
+  productor    String
+  grua         String
+  fecha        String
+  fechaTexto   String?  @map("fecha_texto")
+  productoFsc  String?  @map("producto_fsc")
+  destino      String   @default("")
+
+  generos      Json     @default("[]")
+  ajustes      Json     @default("[]")
+
+  ivaRate      Float    @default(0.16) @map("iva_rate")
+  isrRate      Float    @default(0.0125) @map("isr_rate")
+
+  observaciones String?
+  estado        String  @default("guardado")
+
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([fecha])
+  @@index([grua])
+  @@index([productor])
+  @@map("formatos")
+}
+
+model Flete {
+  id            Int      @id @default(autoincrement())
+  folio         String?
+  fletero       String
+  fecha         String
+  fechaTexto    String?  @map("fecha_texto")
+
+  lineas        Json     @default("[]")
+  precioFlete   Float    @default(0) @map("precio_flete")
+  ajustes       Json     @default("[]")
+
+  ivaRate       Float    @default(0.16) @map("iva_rate")
+  retencionRate Float    @default(0.04) @map("retencion_rate")
+  isrRate       Float    @default(0.0125) @map("isr_rate")
+
+  observaciones String?
+  estado        String   @default("guardado")
+
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([fecha])
+  @@index([fletero])
+  @@map("fletes")
+}
+
+// Catálogos y configuración general — mismo patrón clave/valor que ya
+// usaba settings en SQLite (gruas_json, fleteros_json, parajes_json,
+// destinos_json, generos_default_json, empresa_nombre, tasas por
+// defecto, etc.), para que src/pages/Ajustes.jsx no tenga que cambiar
+// de forma, solo de dónde lee/escribe.
+model Setting {
+  clave        String   @id
+  valor        String
+  actualizadoEn DateTime @default(now()) @updatedAt @map("actualizado_en")
+
+  @@map("settings")
+}
+
+// Diseños de comprobante hechos en el Editor de Formatos (/formatos).
+// tipo: 'extraccion' | 'flete'. activo = el diseño que se usa al imprimir
+// ese tipo (a lo más uno activo por tipo; si ninguno, se usa el diseño
+// original 2026 hecho en React). project_data es el documento del editor
+// (página, elementos, paletas, imágenes) — ver src/editor/modelo.js.
+model PlantillaFormato {
+  id          Int      @id @default(autoincrement())
+  nombre      String
+  tipo        String
+  version     Int      @default(1)
+  activo      Boolean  @default(false)
+  html        String   @default("")
+  css         String   @default("")
+  projectData Json     @default("{}") @map("project_data")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @default(now()) @map("updated_at")
+
+  @@index([tipo])
+  @@index([tipo, activo])
+  @@map("plantillas_formato")
+}

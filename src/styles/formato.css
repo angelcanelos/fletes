@@ -1,0 +1,200 @@
+/* =========================================================
+   FORMATO "EXTRACCION DE TROCERIA EN ROLLO" — replica exacta
+   Estos estilos NO deben modificarse: definen el formato oficial
+   que la empresa debe usar durante el año. Cambiar aquí cambia
+   la apariencia impresa del comprobante.
+   ========================================================= */
+
+:root{
+  --navy: #0e2841;
+  --navy-2: #16324f;
+  --green: #95ca58;
+  --green-dark: #2f6b1f;
+  --red: #d21f1f;
+  --paper-w: 10.5cm;   /* ancho del comprobante impreso */
+}
+
+.hoja{
+  width: var(--paper-w);
+  background: #fff;
+  margin: 0 auto;
+  position: relative;
+  font-family: Arial, Helvetica, sans-serif;
+  color: #111;
+  box-sizing: border-box;
+  padding: 0.45cm 0.4cm 0 0.4cm;
+}
+
+.hoja *{ box-sizing: border-box; }
+
+/* ---------- Encabezado: logo + cintillo azul ---------- */
+.f-encabezado{
+  display: flex;
+  align-items: stretch;
+  gap: 0.15cm;
+  margin-bottom: 0.25cm;
+}
+
+.f-logo-wrap{
+  width: 2.9cm;
+  height: 2.9cm;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+  overflow: hidden;
+  flex: 0 0 auto;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.18cm;
+}
+.f-logo-wrap img{ width: 100%; height: 100%; object-fit: contain; object-position: center; }
+.f-logo-wrap .f-logo-fallback{
+  font-size: 8px; color:#888; text-align:center; padding: 4px;
+}
+
+.f-cintillo{
+  flex: 1 1 auto;
+  position: relative;
+  background: var(--navy);
+  color: #fff;
+  clip-path: polygon(6% 0, 100% 0, 100% 100%, 6% 100%, 0 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 0.12cm 0.35cm 0.12cm 0.5cm;
+  min-height: 2.1cm;
+}
+.f-cintillo h1{
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.18;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.f-fsc{
+  border: 1.5px solid #111;
+  border-radius: 3px;
+  font-size: 9.5px;
+  font-weight: 700;
+  text-align: center;
+  padding: 0.12cm 0.2cm;
+  margin: 0 0 0.3cm 3.15cm;
+  line-height: 1.25;
+}
+
+/* ---------- Cajas de datos (productor, grua, fecha) ---------- */
+.f-caja{
+  position: relative;
+  display: table;
+  margin: 0.32cm 0 0.55cm 0;
+  z-index: 1;
+}
+.f-caja-sombra{
+  position: absolute;
+  left: -0.12cm;
+  right: -0.55cm;
+  top: 45%;
+  bottom: -0.3cm;
+  background: var(--navy);
+  border-radius: 0 8px 8px 0;
+  z-index: -1;
+}
+.f-caja-box{
+  display: inline-block;
+  background: #fff;
+  border: 1.5px solid #111;
+  border-radius: 8px;
+  padding: 0.18cm 0.5cm;
+  font-weight: 800;
+  font-size: 13px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.f-caja--productor{ display: block; margin-bottom: 0.2cm; }
+.f-caja--productor .f-caja-box{ min-width: 78%; max-width: 100%; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; }
+
+/* El destino (antes texto fijo "madymsa", ahora un catálogo de largo
+   variable) va en su propia línea debajo del productor, en vez de
+   encimado a su derecha: así nunca se monta con la caja del productor
+   sin importar qué tan largo sea uno u otro. */
+.f-madymsa{
+  display: block;
+  text-align: right;
+  font-style: italic;
+  font-size: 9px;
+  color: #111;
+  margin: 0.08cm 0.1cm 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+/* ---------- Tabla de géneros ---------- */
+.f-tabla-wrap{ margin-top: 0.3cm; }
+table.f-tabla{
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11.5px;
+}
+table.f-tabla thead th{
+  background: var(--navy);
+  color: #fff;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 0.14cm 0.12cm;
+  text-align: left;
+  font-size: 11px;
+}
+table.f-tabla thead th:not(:first-child){ text-align: right; }
+table.f-tabla tbody td{
+  padding: 0.1cm 0.12cm;
+  font-weight: 700;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+table.f-tabla tbody td:not(:first-child){ text-align: right; font-weight: 700; }
+
+.f-resumen{ width: 100%; font-size: 12px; margin-top: 0.15cm; }
+.f-resumen tr td{ padding: 0.13cm 0.12cm; }
+.f-resumen tr td.f-label{ font-weight: 700; text-transform: uppercase; }
+.f-resumen tr td.f-val{ text-align: right; font-weight: 700; white-space: nowrap; }
+.f-resumen tr.f-total-neto td{ font-weight: 900; font-size: 13px; border-top: 1px solid #999; }
+
+.f-saldo{
+  margin-top: 0.35cm;
+  background: var(--navy);
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  padding: 0.22cm 0.35cm;
+  letter-spacing: 0.3px;
+}
+
+.f-footer-space{ height: 0.4cm; }
+
+@media print{
+  html, body{ background: #fff; }
+  .no-imprimir{ display: none !important; }
+  .hoja, .hoja *{
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    color-adjust: exact;
+  }
+  /* El comprobante mide 10.5cm x ~17.7cm de alto de forma natural (es
+     más alto que ancho). En una hoja Carta (21.59 x 27.94cm, con 6mm de
+     margen por lado) lo que limita qué tan grande se puede imprimir es
+     el ALTO, no el ancho: con zoom 1.47 mide ~15.4cm de ancho x ~26cm de
+     alto, usando casi toda la hoja sin pasar a una segunda página. Subir
+     el zoom más allá de ~1.5 ya se sale de una hoja Carta.
+   */
+  .hoja{ margin: 0 auto; zoom: 1.47; box-shadow: none !important; }
+  @page{ size: auto; margin: 6mm; }
+}

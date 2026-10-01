@@ -1,0 +1,132 @@
+/* Estilos propios del Editor de Formatos (modo oscuro tipo Figma). */
+
+html.editor-activo,
+html.editor-activo body {
+  background: #1e1e1e;
+  /* index.css fija un texto oscuro en body; los menús y listas de HeroUI se
+     montan en body (fuera del editor) y lo heredarían: texto oscuro sobre
+     fondo oscuro. En el editor, el texto base es el claro del tema. */
+  color: hsl(var(--heroui-foreground));
+  overflow: hidden;
+}
+
+/* Sin transiciones CSS mientras el editor está abierto (hover de botones,
+   pestañas, switches, menús): se sentían como parpadeo. */
+html.editor-activo *,
+html.editor-activo *::before,
+html.editor-activo *::after {
+  transition: none !important;
+}
+
+.editor-lienzo {
+  background-color: #1e1e1e;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 22px 22px;
+  --moveable-color: #0d99ff;
+  touch-action: none;
+}
+
+.editor-lienzo--soltando {
+  box-shadow: inset 0 0 0 2px rgba(13, 153, 255, 0.6);
+}
+
+.editor-pagina-sombra > .doc-hoja {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.04), 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+/* Moveable: mismo azul que Figma, manijas cuadradas blancas. */
+.editor-lienzo .moveable-control-box {
+  --moveable-color: #0d99ff;
+}
+.editor-lienzo .moveable-control-box .moveable-control {
+  width: 8px !important;
+  height: 8px !important;
+  margin-top: -4px !important;
+  margin-left: -4px !important;
+  border-radius: 1px !important;
+  background: #fff !important;
+  border: 1px solid #0d99ff !important;
+}
+.editor-lienzo .moveable-control-box .moveable-rotation-control {
+  border-radius: 50% !important;
+}
+.editor-lienzo .moveable-line {
+  background: #0d99ff !important;
+}
+
+.editor-lienzo .selecto-selection {
+  border: 1px solid #0d99ff !important;
+  background: rgba(13, 153, 255, 0.08) !important;
+}
+
+/* Elementos del documento dentro del editor */
+.editor-lienzo .doc-el--bloqueado {
+  pointer-events: none;
+}
+.editor-lienzo .doc-texto-editando {
+  caret-color: #0d99ff;
+}
+.editor-lienzo .doc-texto-editando::selection,
+.editor-lienzo .doc-texto-editando *::selection {
+  background: rgba(13, 153, 255, 0.35);
+}
+
+.doc-imagen-vacia {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 500 11px Inter, sans-serif;
+  color: #8a8a8a;
+  background: repeating-linear-gradient(45deg, #f1f1f1 0 8px, #e6e6e6 8px 16px);
+}
+
+.doc-tabla-vacia {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 500 11px Inter, sans-serif;
+  color: #8a8a8a;
+  border: 1px dashed #bbb;
+}
+
+.editor-ajedrez {
+  background-color: #fff;
+  background-image:
+    linear-gradient(45deg, #d4d4d4 25%, transparent 25%),
+    linear-gradient(-45deg, #d4d4d4 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #d4d4d4 75%),
+    linear-gradient(-45deg, transparent 75%, #d4d4d4 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+}
+
+.editor-colorful .react-colorful {
+  width: 100%;
+  height: 170px;
+}
+.editor-colorful .react-colorful__saturation {
+  border-radius: 8px 8px 0 0;
+}
+.editor-colorful .react-colorful__last-control {
+  border-radius: 0 0 8px 8px;
+}
+.editor-colorful .react-colorful__pointer {
+  width: 16px;
+  height: 16px;
+}
+
+.editor-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3a transparent;
+}
+.editor-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+.editor-scroll::-webkit-scrollbar-thumb {
+  background: #3a3a3a;
+  border-radius: 8px;
+}
