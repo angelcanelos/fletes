@@ -42,7 +42,7 @@ export default function SyncStatus() {
 
   if (!enLinea) {
     return (
-      <div className="flex items-center gap-2 rounded-lg bg-warning-bg/10 px-3 py-2 text-[11.5px] font-semibold text-warning">
+      <div className="flex items-center gap-2 rounded-xl bg-warning-bg px-3 py-2 text-[11.5px] font-semibold text-warning">
         <WifiOff className="h-3.5 w-3.5 flex-none" strokeWidth={2.25} />
         <span className="min-w-0 flex-1">
           Sin conexión — se sigue guardando aquí{pendientes > 0 ? ` (${pendientes} pendiente${pendientes === 1 ? '' : 's'})` : ''}.
@@ -53,7 +53,7 @@ export default function SyncStatus() {
 
   if (lenta) {
     return (
-      <div className="flex items-center gap-2 rounded-lg bg-warning-bg/10 px-3 py-2 text-[11.5px] font-semibold text-warning">
+      <div className="flex items-center gap-2 rounded-xl bg-warning-bg px-3 py-2 text-[11.5px] font-semibold text-warning">
         <Snail className="h-3.5 w-3.5 flex-none" strokeWidth={2.25} />
         <span className="min-w-0 flex-1">
           Conexión lenta — se sigue guardando aquí{pendientes > 0 ? ` (${pendientes} pendiente${pendientes === 1 ? '' : 's'})` : ''}.
@@ -67,7 +67,7 @@ export default function SyncStatus() {
       <button
         type="button"
         onClick={() => sincronizarAhora()}
-        className="flex items-center gap-2 rounded-lg bg-white/5 px-3 py-2 text-[11.5px] font-semibold text-ink-300 transition-colors hover:bg-white/10"
+        className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2 text-[11.5px] font-semibold text-brand-700 transition-colors hover:bg-brand-100"
       >
         <RefreshCw className={`h-3.5 w-3.5 flex-none ${sincronizando ? 'animate-spin' : ''}`} strokeWidth={2.25} />
         <span className="min-w-0 flex-1 text-left">

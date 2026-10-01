@@ -2,6 +2,85 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --c-brand-50: 241 240 255;
+  --c-brand-100: 229 226 255;
+  --c-brand-200: 206 200 254;
+  --c-brand-300: 173 163 252;
+  --c-brand-400: 140 126 248;
+  --c-brand-500: 111 96 241;
+  --c-brand-600: 91 74 230;
+  --c-brand-700: 75 59 202;
+  --c-brand-800: 62 51 163;
+  --c-brand-900: 52 45 128;
+  --c-ink-950: 12 16 34;
+  --c-ink-900: 25 28 46;
+  --c-ink-800: 38 42 64;
+  --c-ink-700: 57 62 87;
+  --c-ink-600: 81 87 111;
+  --c-ink-500: 104 110 135;
+  --c-ink-400: 141 147 169;
+  --c-ink-300: 180 185 202;
+  --c-ink-200: 216 219 230;
+  --c-ink-100: 236 238 244;
+  --c-surface-default: 243 244 248;
+  --c-surface-card: 255 255 255;
+  --c-surface-border: 229 231 239;
+  --c-surface-muted: 240 241 246;
+  --c-success-default: 21 128 61;
+  --c-success-bg: 220 245 229;
+  --c-warning-default: 180 83 9;
+  --c-warning-bg: 252 240 214;
+  --c-danger-default: 220 38 38;
+  --c-danger-bg: 253 228 228;
+  --fuente-app: "Outfit", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --radio-panel: 28px;
+  --radio-card: 20px;
+  --sombra-panel: 0 1px 2px rgba(25, 28, 46, 0.03), 0 12px 32px -16px rgba(25, 28, 46, 0.10);
+  --sombra-card: 0 1px 2px rgba(25, 28, 46, 0.04);
+}
+
+/* El Editor de Formatos conserva su diseño original: paleta verde,
+   Inter, radios y sombras de antes. */
+.tema-clasico {
+  --c-brand-50: 238 247 232;
+  --c-brand-100: 220 239 209;
+  --c-brand-200: 185 223 166;
+  --c-brand-300: 143 202 117;
+  --c-brand-400: 103 179 80;
+  --c-brand-500: 63 143 39;
+  --c-brand-600: 47 107 31;
+  --c-brand-700: 36 84 24;
+  --c-brand-800: 28 66 19;
+  --c-brand-900: 21 51 15;
+  --c-ink-950: 14 26 17;
+  --c-ink-900: 19 33 24;
+  --c-ink-800: 26 44 31;
+  --c-ink-700: 37 57 42;
+  --c-ink-600: 58 79 61;
+  --c-ink-500: 90 110 92;
+  --c-ink-400: 127 144 128;
+  --c-ink-300: 169 183 168;
+  --c-ink-200: 206 217 204;
+  --c-ink-100: 230 237 228;
+  --c-surface-default: 246 248 244;
+  --c-surface-card: 255 255 255;
+  --c-surface-border: 228 233 224;
+  --c-surface-muted: 238 242 234;
+  --c-success-default: 31 122 61;
+  --c-success-bg: 223 243 227;
+  --c-warning-default: 168 113 11;
+  --c-warning-bg: 253 241 218;
+  --c-danger-default: 192 57 43;
+  --c-danger-bg: 251 228 225;
+  --fuente-app: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --radio-panel: 14px;
+  --radio-card: 12px;
+  --sombra-panel: 0 1px 2px rgba(20, 35, 15, 0.04), 0 8px 24px -12px rgba(20, 35, 15, 0.12);
+  --sombra-card: 0 1px 2px rgba(20, 35, 15, 0.05);
+  font-family: var(--fuente-app);
+}
+
 html, body {
   background: theme('colors.surface.DEFAULT');
   color: theme('colors.ink.900');
@@ -33,18 +112,37 @@ html, body {
   outline-offset: 2px;
 }
 
+/* Los campos ya marcan el foco a su manera (anillo de .form-input /
+   .campo-input, o el contenedor de los componentes de HeroUI); sin esto
+   se encimaba un cuadro índigo sobre el texto. */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[data-slot] :focus-visible,
+[data-slot]:focus-visible {
+  outline: none;
+}
+
 @layer components {
+  /* Fondo del área de contenido: gris frío con un brillo cálido/violeta
+     muy suave arriba, como en el dashboard de referencia. */
+  .fondo-app {
+    background:
+      radial-gradient(ellipse 60% 40% at 55% 30%, rgba(255, 237, 225, 0.75), transparent 70%),
+      radial-gradient(ellipse 50% 35% at 85% 10%, rgba(229, 226, 255, 0.6), transparent 70%),
+      theme('colors.surface.DEFAULT');
+  }
   .campo-input {
-    @apply rounded-lg border-[1.5px] border-surface-border bg-white px-2.5 py-2 text-sm text-ink-900 transition-colors placeholder:text-ink-400;
+    @apply rounded-xl border-[1.5px] border-transparent bg-surface-muted px-3 py-2 text-sm text-ink-900 transition-colors placeholder:text-ink-400 hover:bg-ink-100;
   }
   .campo-input:focus {
-    @apply outline-none ring-2 ring-brand-200 border-brand-400;
+    @apply border-brand-500 bg-white outline-none ring-4 ring-brand-100;
   }
   .form-input {
-    @apply w-full rounded-[10px] border-[1.5px] border-surface-border bg-white px-3 py-2.5 text-[0.9rem] font-sans text-ink-900 transition-colors placeholder:text-ink-400;
+    @apply w-full rounded-xl border-[1.5px] border-surface-border bg-white px-3.5 py-2.5 text-[0.9rem] font-sans text-ink-900 transition-colors placeholder:text-ink-400;
   }
   .form-input:focus {
-    @apply outline-none ring-2 ring-brand-200 border-brand-400;
+    @apply border-brand-500 outline-none ring-4 ring-brand-100;
   }
   .form-input:disabled {
     @apply cursor-not-allowed bg-surface-muted text-ink-400;
@@ -53,18 +151,23 @@ html, body {
     @apply text-[0.8125rem] font-semibold text-ink-700;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-60;
   }
   .btn-primary {
-    @apply btn bg-brand-600 text-white hover:bg-brand-700;
+    @apply btn bg-brand-600 text-white shadow-boton hover:-translate-y-px hover:bg-brand-700;
   }
   .btn-secondary {
-    @apply btn bg-surface-muted text-ink-800 hover:bg-ink-100;
+    @apply btn border border-surface-border bg-white text-ink-800 shadow-card hover:border-ink-200 hover:bg-surface-muted;
   }
   .btn-danger {
-    @apply btn bg-danger-bg text-danger hover:bg-[#f6cfc9];
+    @apply btn bg-danger-bg text-danger hover:bg-[#fbd0d0];
   }
   .card {
     @apply rounded-card border border-surface-border bg-surface-card shadow-card;
+  }
+  /* Contenedor blanco de los dashboards: filtros arriba y, en el mismo
+     bloque, las carpetas o la tabla. */
+  .panel-lista {
+    @apply rounded-panel border border-surface-border bg-white shadow-panel;
   }
 }

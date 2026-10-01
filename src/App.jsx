@@ -24,7 +24,7 @@ import { AuthProvider } from './lib/AuthContext.jsx';
 // sidebar nunca aparece de fondo en la vista previa de impresión.
 function Shell() {
   return (
-    <div className="flex min-h-screen flex-col bg-surface lg:flex-row">
+    <div className="fondo-app flex min-h-screen flex-col lg:flex-row">
       <Sidebar />
       <div className="min-w-0 flex-1">
         <AvisoSesion />

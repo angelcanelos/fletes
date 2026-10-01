@@ -1,11 +1,11 @@
 {
   "name": "fletes-v2",
-  "version": "0.1.0",
-  "description": "App de Forestal Tezains (Extracción y Fletes) con base de datos en Supabase en tiempo real; la versión de escritorio sigue funcionando sin internet y sincroniza sola al reconectar.",
+  "version": "0.2.0",
+  "description": "Gestión Extracción y Fletes: app de Forestal Tezains con base de datos en Supabase en tiempo real; la versión de escritorio sigue funcionando sin internet y sincroniza sola al reconectar.",
   "main": "electron/main.js",
   "scripts": {
     "dev": "vite",
-    "dev:copia": "vite --mode copia",
+    "dev:dev": "vite --mode dev",
     "build": "vite build",
     "preview": "vite preview",
     "electron:dev": "npm run build && electron .",
@@ -15,11 +15,13 @@
   "private": true,
   "dependencies": {
     "@heroui/react": "^2.8.10",
+    "@internationalized/date": "^3.12.4",
     "@supabase/supabase-js": "^2.116.0",
     "dexie": "^4.4.6",
     "framer-motion": "^11.18.2",
     "immer": "^11.1.18",
     "lucide-react": "^1.46.0",
+    "matter-js": "^0.20.0",
     "react": "^18.3.1",
     "react-colorful": "^5.8.1",
     "react-dom": "^18.3.1",
@@ -41,7 +43,7 @@
   },
   "build": {
     "appId": "com.forestaltezains.fletesv2",
-    "productName": "Forestal Tezains",
+    "productName": "Gestión Extracción y Fletes",
     "copyright": "Forestal Tezains",
     "asar": true,
     "files": [

@@ -72,7 +72,7 @@ export default function PantallaImprimir({ tipo, obtener, volverA, titulo, texto
                 setParams(siguiente, { replace: true });
               }}
             >
-              <option value={ORIGINAL}>{`Original 2026${!activa ? ' (en uso)' : ''}`}</option>
+              <option value={ORIGINAL}>{`2026${!activa ? ' (en uso)' : ''}`}</option>
               {plantillas.map((p) => <option key={p.id} value={String(p.id)}>{`${p.nombre}${p.activo ? ' (en uso)' : ''}`}</option>)}
             </select>
           </label>

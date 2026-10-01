@@ -16,7 +16,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['"Inter"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif']
+        sans: 'var(--fuente-app)'
       },
       fontSize: {
         xs: ['0.75rem', { lineHeight: '1.15rem' }],
@@ -29,65 +29,82 @@ export default {
         '3xl': ['1.8rem', { lineHeight: '2.1rem' }]
       },
       colors: {
-        // Marca (acento) — se conserva el verde de Forestal Tezains pero
-        // como escala completa y más contenida: solo para acción primaria,
-        // selección activa e indicadores de estado, no decoración.
+        // Los colores de marca, neutros y estados salen de variables CSS
+        // (definidas en src/styles/index.css): la paleta índigo es la de
+        // la app, y la clase .tema-clasico restaura la verde original en
+        // el Editor de Formatos, que conserva su diseño.
         brand: {
-          50: '#eef7e8',
-          100: '#dcefd1',
-          200: '#b9dfa6',
-          300: '#8fca75',
-          400: '#67b350',
-          500: '#3f8f27',
-          600: '#2f6b1f',
-          700: '#245418',
-          800: '#1c4213',
-          900: '#15330f'
+          '50': 'rgb(var(--c-brand-50) / <alpha-value>)',
+          '100': 'rgb(var(--c-brand-100) / <alpha-value>)',
+          '200': 'rgb(var(--c-brand-200) / <alpha-value>)',
+          '300': 'rgb(var(--c-brand-300) / <alpha-value>)',
+          '400': 'rgb(var(--c-brand-400) / <alpha-value>)',
+          '500': 'rgb(var(--c-brand-500) / <alpha-value>)',
+          '600': 'rgb(var(--c-brand-600) / <alpha-value>)',
+          '700': 'rgb(var(--c-brand-700) / <alpha-value>)',
+          '800': 'rgb(var(--c-brand-800) / <alpha-value>)',
+          '900': 'rgb(var(--c-brand-900) / <alpha-value>)'
         },
-        // Superficie del sidebar: capa neutra, más oscura y fría que el
-        // contenido, con la misma familia verde-carbón (no gris puro).
         ink: {
-          950: '#0e1a11',
-          900: '#132118',
-          800: '#1a2c1f',
-          700: '#25392a',
-          600: '#3a4f3d',
-          500: '#5a6e5c',
-          400: '#7f9080',
-          300: '#a9b7a8',
-          200: '#ced9cc',
-          100: '#e6ede4'
+          '950': 'rgb(var(--c-ink-950) / <alpha-value>)',
+          '900': 'rgb(var(--c-ink-900) / <alpha-value>)',
+          '800': 'rgb(var(--c-ink-800) / <alpha-value>)',
+          '700': 'rgb(var(--c-ink-700) / <alpha-value>)',
+          '600': 'rgb(var(--c-ink-600) / <alpha-value>)',
+          '500': 'rgb(var(--c-ink-500) / <alpha-value>)',
+          '400': 'rgb(var(--c-ink-400) / <alpha-value>)',
+          '300': 'rgb(var(--c-ink-300) / <alpha-value>)',
+          '200': 'rgb(var(--c-ink-200) / <alpha-value>)',
+          '100': 'rgb(var(--c-ink-100) / <alpha-value>)'
         },
-        // Superficie de contenido y tarjetas
         surface: {
-          DEFAULT: '#f6f8f4',
-          card: '#ffffff',
-          border: '#e4e9e0',
-          muted: '#eef2ea'
+          DEFAULT: 'rgb(var(--c-surface-default) / <alpha-value>)',
+          card: 'rgb(var(--c-surface-card) / <alpha-value>)',
+          border: 'rgb(var(--c-surface-border) / <alpha-value>)',
+          muted: 'rgb(var(--c-surface-muted) / <alpha-value>)'
         },
-        // Estados semánticos
-        success: { DEFAULT: '#1f7a3d', bg: '#dff3e3' },
-        warning: { DEFAULT: '#a8710b', bg: '#fdf1da' },
-        danger: { DEFAULT: '#c0392b', bg: '#fbe4e1' },
-        info: { DEFAULT: '#0e2841', bg: '#e4ecf3' },
+        success: {
+          DEFAULT: 'rgb(var(--c-success-default) / <alpha-value>)',
+          bg: 'rgb(var(--c-success-bg) / <alpha-value>)'
+        },
+        warning: {
+          DEFAULT: 'rgb(var(--c-warning-default) / <alpha-value>)',
+          bg: 'rgb(var(--c-warning-bg) / <alpha-value>)'
+        },
+        danger: {
+          DEFAULT: 'rgb(var(--c-danger-default) / <alpha-value>)',
+          bg: 'rgb(var(--c-danger-bg) / <alpha-value>)'
+        },
+        info: { DEFAULT: '#1d4ed8', bg: '#e3edfd' },
+        // Tonos pastel de las tarjetas de estadísticas (fondo, borde,
+        // texto de la etiqueta), como en el dashboard de referencia.
+        tono: {
+          indigo: { bg: '#ecebfd', borde: '#d6d3fb', texto: '#5b4ae6' },
+          verde: { bg: '#e4f7ec', borde: '#c3ecd3', texto: '#15803d' },
+          azul: { bg: '#e6f0fd', borde: '#c9dcf9', texto: '#1d64d8' },
+          ambar: { bg: '#fbf2de', borde: '#f2dfb2', texto: '#b45309' },
+          rosa: { bg: '#fce9f2', borde: '#f5cde0', texto: '#be185d' },
+          teal: { bg: '#e0f5f3', borde: '#bce7e2', texto: '#0f766e' }
+        },
         // Alias retro-compatibles (algunos componentes viejos los usan)
         verde: {
-          DEFAULT: '#3f8f27',
-          fuerte: '#2f6b1f',
-          suave: '#eaf6df',
-          borde: '#cfe8ba'
+          DEFAULT: '#6f60f1',
+          fuerte: '#5b4ae6',
+          suave: '#f1f0ff',
+          borde: '#cec8fe'
         },
-        navy: '#0e2841',
-        fondo: '#f6f8f4'
+        navy: '#191c2e',
+        fondo: '#f3f4f8'
       },
       boxShadow: {
-        panel: '0 1px 2px rgba(20, 35, 15, 0.04), 0 8px 24px -12px rgba(20, 35, 15, 0.12)',
-        card: '0 1px 2px rgba(20, 35, 15, 0.05)',
-        popover: '0 12px 32px -8px rgba(14, 26, 17, 0.28)'
+        panel: 'var(--sombra-panel)',
+        card: 'var(--sombra-card)',
+        popover: '0 16px 40px -10px rgba(25, 28, 46, 0.25)',
+        boton: '0 8px 20px -8px rgba(91, 74, 230, 0.65)'
       },
       borderRadius: {
-        panel: '14px',
-        card: '12px'
+        panel: 'var(--radio-panel)',
+        card: 'var(--radio-card)'
       },
       keyframes: {
         'toast-in': {
@@ -116,33 +133,31 @@ export default {
     }
   },
   plugins: [
-    // Se mapean los tokens de marca ya existentes (brand/success/warning/
-    // danger) a los slots semánticos de HeroUI en vez de aceptar su paleta
-    // por defecto — así los componentes migrados a HeroUI se ven con la
-    // identidad de Forestal Tezains, no con los colores de fábrica.
+    // Se mapean los tokens de marca (brand/success/warning/danger) a los
+    // slots semánticos de HeroUI en vez de aceptar su paleta por defecto.
     heroui({
       themes: {
         light: {
           colors: {
-            background: '#f6f8f4',
-            foreground: '#132118',
+            background: '#f3f4f8',
+            foreground: '#191c2e',
             primary: {
-              50: '#eef7e8',
-              100: '#dcefd1',
-              200: '#b9dfa6',
-              300: '#8fca75',
-              400: '#67b350',
-              500: '#3f8f27',
-              600: '#2f6b1f',
-              700: '#245418',
-              800: '#1c4213',
-              900: '#15330f',
-              DEFAULT: '#2f6b1f',
+              50: '#f1f0ff',
+              100: '#e5e2ff',
+              200: '#cec8fe',
+              300: '#ada3fc',
+              400: '#8c7ef8',
+              500: '#6f60f1',
+              600: '#5b4ae6',
+              700: '#4b3bca',
+              800: '#3e33a3',
+              900: '#342d80',
+              DEFAULT: '#5b4ae6',
               foreground: '#ffffff'
             },
-            success: { DEFAULT: '#1f7a3d', foreground: '#ffffff' },
-            warning: { DEFAULT: '#a8710b', foreground: '#ffffff' },
-            danger: { DEFAULT: '#c0392b', foreground: '#ffffff' }
+            success: { DEFAULT: '#15803d', foreground: '#ffffff' },
+            warning: { DEFAULT: '#b45309', foreground: '#ffffff' },
+            danger: { DEFAULT: '#dc2626', foreground: '#ffffff' }
           }
         },
         // Solo lo usa el Editor de Formatos (/formatos/:id/editor), que

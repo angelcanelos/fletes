@@ -203,7 +203,7 @@ function EditorFormatoContenido() {
 
   if (error) {
     return (
-      <div className="dark flex h-screen flex-col items-center justify-center gap-3 bg-background text-foreground">
+      <div className="tema-clasico dark flex h-screen flex-col items-center justify-center gap-3 bg-background text-foreground">
         <FileWarning className="h-10 w-10 text-danger" />
         <p>{error}</p>
         <Button variant="flat" onPress={() => navigate('/formatos')}>Volver a Formatos</Button>
@@ -213,14 +213,14 @@ function EditorFormatoContenido() {
 
   if (!doc || !plantilla || !datos) {
     return (
-      <div className="dark flex h-screen items-center justify-center bg-background text-foreground">
+      <div className="tema-clasico dark flex h-screen items-center justify-center bg-background text-foreground">
         <Spinner label="Abriendo diseño…" />
       </div>
     );
   }
 
   return (
-    <div className="editor-raiz dark flex h-screen flex-col overflow-hidden bg-background text-foreground">
+    <div className="editor-raiz tema-clasico dark flex h-screen flex-col overflow-hidden bg-background text-foreground">
       <BarraSuperior estadoGuardado={estadoGuardado} onGuardar={guardar} onVolver={volver} onUsar={usar} onProbar={probar} />
       <div className="flex min-h-0 flex-1">
         <PanelIzquierdo tipo={plantilla.tipo} datos={datos} />

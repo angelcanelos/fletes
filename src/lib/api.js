@@ -149,7 +149,7 @@ export const Api = {
     id = Number(id);
     if (id < 0) {
       const local = await localDb.formatos.get(id);
-      if (!local) throw new Error('No se encontró el formato');
+      if (!local) throw new Error('No se encontró la extracción');
       return local;
     }
     try {
@@ -162,7 +162,7 @@ export const Api = {
       manejarFalloDeRed(err);
     }
     const local = await localDb.formatos.get(id);
-    if (!local) throw new Error('No se encontró el formato');
+    if (!local) throw new Error('No se encontró la extracción');
     return local;
   },
   async crearFormato(payload) {
@@ -238,7 +238,7 @@ export const Api = {
       asegurarIntentoDeRed();
       const { data, error } = await conLimiteDeTiempo(supabase.from('formatos').update(cambios).eq('id', id).select().maybeSingle());
       if (error) throw new Error(error.message);
-      if (!data) throw new Error('No se encontró el formato');
+      if (!data) throw new Error('No se encontró la extracción');
       reportarExitoDeRed();
       await localDb.formatos.put(data);
       return data;

@@ -7,9 +7,9 @@ export default function Imprimir() {
       tipo="extraccion"
       obtener={Api.obtenerFormato}
       volverA="/extraccion"
-      titulo={(f) => `Formato ${f.folio || f.id} - ${f.productor}`}
-      textoNoEncontrado="No se encontró ese formato."
-      textoSinId="No se indicó qué formato imprimir."
+      titulo={(f) => `Extracción ${f.folio || f.id} - ${f.productor}`}
+      textoNoEncontrado="No se encontró esa extracción."
+      textoSinId="No se indicó qué extracción imprimir."
     />
   );
 }

@@ -11,7 +11,7 @@ import './lib/syncEngine.js'; // arranca el motor de sincronización offline al 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <BrowserRouter>
-      <HeroUIProvider>
+      <HeroUIProvider locale="es-MX">
         <App />
       </HeroUIProvider>
     </BrowserRouter>

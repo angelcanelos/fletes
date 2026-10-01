@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Save, X, Plus, Trash2, Loader2, TriangleAlert, Ban, CircleCheck,
+  Save, X, Plus, Trash2, Loader2, TriangleAlert,
   ClipboardList, Trees, Wallet, Percent, NotebookPen
 } from 'lucide-react';
 import { Api } from '../lib/api.js';
@@ -9,6 +9,7 @@ import { fechaLargaEs } from '../lib/calc.js';
 import PageLayout from '../components/PageLayout.jsx';
 import Panel from '../components/Panel.jsx';
 import Campo from '../components/Campo.jsx';
+import SwitchImpuesto from '../components/SwitchImpuesto.jsx';
 import ReciboFormato from '../components/ReciboFormato.jsx';
 import { useToast } from '../components/Toast.jsx';
 import useZoomAjustado from '../hooks/useZoomAjustado.js';
@@ -67,6 +68,14 @@ const datosVacios = {
   observaciones: ''
 };
 
+// Tasas por defecto del catálogo (Ajustes).
+function ivaCatalogo(s) {
+  return s.iva_rate != null ? Number(s.iva_rate) : 0.16;
+}
+function isrCatalogo(s) {
+  return s.isr_rate != null ? Number(s.isr_rate) : 0.0125;
+}
+
 export default function FormatoForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -77,8 +86,10 @@ export default function FormatoForm() {
   const [fscTexto, setFscTexto] = useState('');
   const [cargando, setCargando] = useState(true);
   const [mensaje, setMensaje] = useState(null);
+  // Los porcentajes vienen del catálogo (Ajustes); aquí solo se elige si
+  // cada impuesto se aplica a esta extracción.
+  const [ivaActivo, setIvaActivo] = useState(true);
   const [isrActivo, setIsrActivo] = useState(true);
-  const [isrBackup, setIsrBackup] = useState(1.25);
   const [guardando, setGuardando] = useState(false);
   const toast = useToast();
   // Si hay un diseño del Editor de Formatos en uso, la vista previa lo usa.
@@ -98,23 +109,23 @@ export default function FormatoForm() {
           productor: f.productor, grua: f.grua, destino: f.destino || primerDestino(s), fecha: f.fecha, estado: f.estado || 'guardado',
           generos: generos.map((g) => ({ nombre: g.nombre, metros: ceroVacio(g.metros), precio: ceroVacio(g.precio) })),
           ajustes: (f.ajustes || []).map((a) => ({ etiqueta: a.etiqueta, monto: ceroVacio(a.monto) })),
-          iva_rate_pct: f.iva_rate * 100, isr_rate_pct: f.isr_rate * 100,
+          iva_rate_pct: (f.iva_rate > 0 ? f.iva_rate : ivaCatalogo(s)) * 100,
+          isr_rate_pct: (f.isr_rate > 0 ? f.isr_rate : isrCatalogo(s)) * 100,
           observaciones: f.observaciones || ''
         });
         setFscTexto(f.producto_fsc || s.fsc_texto || '');
+        setIvaActivo(f.iva_rate > 0);
         setIsrActivo(f.isr_rate > 0);
-        if (f.isr_rate > 0) setIsrBackup(f.isr_rate * 100);
       } else {
-        const isrDefault = (s.isr_rate != null ? s.isr_rate : 0.0125) * 100;
         setDatos((d) => ({
           ...d,
           generos: generosPorDefecto(s),
           destino: primerDestino(s),
-          iva_rate_pct: (s.iva_rate || 0.16) * 100,
-          isr_rate_pct: isrDefault
+          iva_rate_pct: ivaCatalogo(s) * 100,
+          isr_rate_pct: isrCatalogo(s) * 100
         }));
-        setIsrActivo(isrDefault > 0);
-        if (isrDefault > 0) setIsrBackup(isrDefault);
+        setIvaActivo(ivaCatalogo(s) > 0);
+        setIsrActivo(isrCatalogo(s) > 0);
       }
       setCargando(false);
     })();
@@ -130,15 +141,6 @@ export default function FormatoForm() {
     setDatos((d) => ({ ...d, grua: nombreGrua, productor: encontrada ? encontrada.productor : d.productor }));
   }
 
-  function toggleIsr() {
-    if (isrActivo) {
-      setIsrBackup(datos.isr_rate_pct || isrBackup);
-      campo('isr_rate_pct', 0);
-    } else {
-      campo('isr_rate_pct', isrBackup || 1.25);
-    }
-    setIsrActivo(!isrActivo);
-  }
 
   function generoCampo(idx, campoNombre, value) {
     setDatos((d) => {
@@ -189,7 +191,7 @@ export default function FormatoForm() {
       ajustes: datos.ajustes
         .filter((a) => (a.etiqueta || '').trim())
         .map((a) => ({ etiqueta: a.etiqueta.trim(), monto: parseFloat(a.monto) || 0 })),
-      iva_rate: (parseFloat(datos.iva_rate_pct) || 0) / 100,
+      iva_rate: ivaActivo ? (parseFloat(datos.iva_rate_pct) || 0) / 100 : 0,
       isr_rate: isrActivo ? (parseFloat(datos.isr_rate_pct) || 0) / 100 : 0,
       observaciones: (datos.observaciones || '').trim()
     };
@@ -198,11 +200,11 @@ export default function FormatoForm() {
       const guardado = esEdicion
         ? await Api.actualizarFormato(id, payload)
         : await Api.crearFormato(payload);
-      toast.exito(esEdicion ? 'Cambios guardados correctamente.' : 'Formato guardado correctamente.');
+      toast.exito(esEdicion ? 'Cambios guardados correctamente.' : 'Extracción guardada correctamente.');
       navigate(`/extraccion/imprimir/${guardado.id}?nuevo=1`);
     } catch (err) {
       setMensaje({ tipo: 'error', texto: err.message });
-      toast.error(err.message || 'No se pudo guardar el formato.');
+      toast.error(err.message || 'No se pudo guardar la extracción.');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       setGuardando(false);
     }
@@ -210,7 +212,7 @@ export default function FormatoForm() {
 
   if (cargando) {
     return (
-      <PageLayout title={esEdicion ? 'Editar formato' : 'Nuevo formato'}>
+      <PageLayout title={esEdicion ? 'Editar extracción' : 'Nueva extracción'}>
         <div className="flex items-center justify-center gap-2.5 p-10 text-center text-ink-500">
           <Loader2 className="h-5 w-5 animate-spin" strokeWidth={2.25} /> Cargando…
         </div>
@@ -227,8 +229,7 @@ export default function FormatoForm() {
 
   return (
     <PageLayout
-      title={esEdicion ? 'Editar formato' : 'Nuevo formato'}
-      subtitle="Llena los datos y revisa la vista previa: así se verá e imprimirá el comprobante."
+      title={esEdicion ? 'Editar extracción' : 'Nueva extracción'}
     >
       {mensaje && (
         <div className={`mb-4 flex items-start gap-2.5 rounded-[10px] px-4 py-3 text-sm ${mensaje.tipo === 'error' ? 'bg-danger-bg text-danger' : 'bg-success-bg text-success'}`}>
@@ -260,16 +261,7 @@ export default function FormatoForm() {
               <Campo label="Fecha">
                 <input type="date" className="form-input" required value={datos.fecha} onChange={(e) => campo('fecha', e.target.value)} />
               </Campo>
-              <Campo label="Estado">
-                <select className="form-input" value={datos.estado} onChange={(e) => campo('estado', e.target.value)}>
-                  <option value="guardado">Guardado</option>
-                  <option value="pagado">Pagado</option>
-                </select>
-              </Campo>
             </div>
-            <p className="mt-2.5 text-xs text-ink-500">
-              El productor va ligado a la grúa; el destino se administra en Ajustes → Catálogos.
-            </p>
           </Panel>
 
           <Panel titulo="Géneros (metros y precio)" icon={Trees}>
@@ -298,10 +290,6 @@ export default function FormatoForm() {
           </Panel>
 
           <Panel titulo="Ajustes (descuentos o cargos adicionales)" icon={Wallet}>
-            <p className="mb-3 text-xs text-ink-500">
-              Agrega solo los ajustes que apliquen a este formato: por ejemplo un descuento de combustible o
-              cualquier cargo extra. Un monto negativo se resta, uno positivo se suma; todos afectan el total neto.
-            </p>
             {datos.ajustes.length > 0 && (
               <table className="w-full border-collapse">
                 <thead>
@@ -328,32 +316,15 @@ export default function FormatoForm() {
           </Panel>
 
           <Panel titulo="Impuestos" icon={Percent}>
-            <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
-              <Campo label="IVA %">
-                <input type="number" step="0.01" className="form-input" value={datos.iva_rate_pct} onChange={(e) => campo('iva_rate_pct', e.target.value)} />
-              </Campo>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[13px] font-bold text-ink-800">ISR %</label>
-                <input type="number" step="0.0001" className="form-input w-full disabled:bg-surface-muted disabled:text-ink-400"
-                  disabled={!isrActivo} value={datos.isr_rate_pct} onChange={(e) => campo('isr_rate_pct', e.target.value)} />
-                <button
-                  type="button"
-                  onClick={toggleIsr}
-                  className={`flex w-fit items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-bold transition-colors ${
-                    isrActivo ? 'bg-danger-bg text-danger hover:bg-[#f6cfc9]' : 'bg-brand-50 text-brand-700 hover:bg-brand-100'
-                  }`}
-                >
-                  {isrActivo ? <Ban className="h-3.5 w-3.5" strokeWidth={2.25} /> : <CircleCheck className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                  {isrActivo ? 'Quitar ISR' : 'Aplicar ISR'}
-                </button>
-                <p className="text-xs text-ink-500">Algunas extracciones no llevan ISR; quítalo si no aplica.</p>
-              </div>
+            <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
+              <SwitchImpuesto nombre="IVA" porcentaje={datos.iva_rate_pct} activo={ivaActivo} onCambiar={setIvaActivo} />
+              <SwitchImpuesto nombre="ISR" porcentaje={datos.isr_rate_pct} activo={isrActivo} onCambiar={setIsrActivo} />
             </div>
           </Panel>
 
           <Panel titulo="Observaciones (opcional, uso interno)" icon={NotebookPen}>
             <Campo label="">
-              <textarea className="form-input" rows={3} placeholder="Notas internas, no se imprimen en el formato"
+              <textarea className="form-input" rows={3} placeholder="Notas internas, no se imprimen"
                 value={datos.observaciones} onChange={(e) => campo('observaciones', e.target.value)} />
             </Campo>
           </Panel>
@@ -366,7 +337,7 @@ export default function FormatoForm() {
               {guardando
                 ? <Loader2 className="h-4 w-4 animate-spin" strokeWidth={2.5} />
                 : <Save className="h-4 w-4" strokeWidth={2.5} />}
-              {esEdicion ? 'Guardar cambios' : 'Guardar formato'}
+              {esEdicion ? 'Guardar cambios' : 'Guardar extracción'}
             </button>
           </div>
         </form>
@@ -391,7 +362,7 @@ export default function FormatoForm() {
                         destino: datos.destino,
                         generos: datos.generos,
                         ajustes: datos.ajustes,
-                        iva_rate: (parseFloat(datos.iva_rate_pct) || 0) / 100,
+                        iva_rate: ivaActivo ? (parseFloat(datos.iva_rate_pct) || 0) / 100 : 0,
                         isr_rate: isrActivo ? (parseFloat(datos.isr_rate_pct) || 0) / 100 : 0,
                         observaciones: datos.observaciones
                       }}
@@ -405,7 +376,7 @@ export default function FormatoForm() {
                       etiquetaExtra={datos.destino}
                       generos={datos.generos}
                       ajustes={datos.ajustes}
-                      ivaRate={(parseFloat(datos.iva_rate_pct) || 0) / 100}
+                      ivaRate={ivaActivo ? (parseFloat(datos.iva_rate_pct) || 0) / 100 : 0}
                       isrRate={isrActivo ? (parseFloat(datos.isr_rate_pct) || 0) / 100 : 0}
                     />
                   )}

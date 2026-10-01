@@ -7,6 +7,8 @@ import {
 import { Api } from '../lib/api.js';
 import { calcularFormato, calcularFlete, formatoMoneda, fechaLegible } from '../lib/calc.js';
 import PageLayout from '../components/PageLayout.jsx';
+import TarjetaStat from '../components/TarjetaStat.jsx';
+import ElegirFletero from '../components/ElegirFletero.jsx';
 import useRealtimeLista from '../hooks/useRealtimeLista.js';
 
 function parseJson(json, fallback) {
@@ -29,6 +31,8 @@ export default function Inicio() {
   const [catalogos, setCatalogos] = useState({ gruas: [], fleteros: [] });
   const [recientesFormatos, setRecientesFormatos] = useState(null);
   const [recientesFletes, setRecientesFletes] = useState(null);
+  const [resumenFleteros, setResumenFleteros] = useState({});
+  const [elegirFletero, setElegirFletero] = useState(false);
 
   const cargar = useCallback(async () => {
     const [sf, sl, settings, formatos, fletes] = await Promise.all([
@@ -46,6 +50,13 @@ export default function Inicio() {
     });
     setRecientesFormatos(formatos.slice(0, 5));
     setRecientesFletes(fletes.slice(0, 5));
+    // fletes llega ordenado del más reciente al más antiguo.
+    const resumen = {};
+    for (const f of fletes) {
+      const r = (resumen[f.fletero] ||= { cantidad: 0, ultimaFecha: f.fecha });
+      r.cantidad += 1;
+    }
+    setResumenFleteros(resumen);
   }, []);
 
   useEffect(() => { cargar(); }, [cargar]);
@@ -57,7 +68,6 @@ export default function Inicio() {
   return (
     <PageLayout
       title="Inicio"
-      subtitle="Resumen general y accesos directos."
     >
       <div className="grid gap-3 sm:grid-cols-2">
         <Link
@@ -66,15 +76,16 @@ export default function Inicio() {
         >
           <div>
             <div className="text-[13px] font-semibold uppercase tracking-wide text-brand-100">Extracción</div>
-            <div className="mt-0.5 text-lg font-bold">Nuevo formato</div>
+            <div className="mt-0.5 text-lg font-bold">Nueva extracción</div>
           </div>
           <span className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-white/15 transition-transform group-hover:scale-105">
             <Plus className="h-5 w-5" strokeWidth={2.5} />
           </span>
         </Link>
-        <Link
-          to="/fletes"
-          className="group flex items-center justify-between gap-4 rounded-panel bg-ink-900 px-6 py-5 text-white shadow-panel transition-transform hover:-translate-y-0.5 hover:bg-ink-800"
+        <button
+          type="button"
+          onClick={() => setElegirFletero(true)}
+          className="group flex items-center justify-between gap-4 rounded-panel bg-ink-900 px-6 py-5 text-left text-white shadow-panel transition-transform hover:-translate-y-0.5 hover:bg-ink-800"
         >
           <div>
             <div className="text-[13px] font-semibold uppercase tracking-wide text-ink-300">Fletes</div>
@@ -83,16 +94,16 @@ export default function Inicio() {
           <span className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-white/10 transition-transform group-hover:scale-105">
             <Plus className="h-5 w-5" strokeWidth={2.5} />
           </span>
-        </Link>
+        </button>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-        <Stat icon={FileStack} valor={statsFormatos?.totalFormatos} etiqueta="Formatos guardados" />
-        <Stat icon={CalendarCheck} valor={statsFormatos?.esteMes} etiqueta="Formatos este mes" />
-        <Stat icon={FileStack} valor={statsFletes?.totalFletes} etiqueta="Fletes guardados" />
-        <Stat icon={CalendarCheck} valor={statsFletes?.esteMes} etiqueta="Fletes este mes" />
-        <Stat icon={Trees} valor={catalogos.gruas.length} etiqueta="Grúas registradas" />
-        <Stat icon={Truck} valor={catalogos.fleteros.length} etiqueta="Fleteros registrados" />
+      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+        <TarjetaStat icon={FileStack} valor={statsFormatos?.totalFormatos} etiqueta="Extracciones guardadas" tono="indigo" />
+        <TarjetaStat icon={CalendarCheck} valor={statsFormatos?.esteMes} etiqueta="Extracciones este mes" tono="azul" />
+        <TarjetaStat icon={FileStack} valor={statsFletes?.totalFletes} etiqueta="Fletes guardados" tono="verde" />
+        <TarjetaStat icon={CalendarCheck} valor={statsFletes?.esteMes} etiqueta="Fletes este mes" tono="ambar" />
+        <TarjetaStat icon={Trees} valor={catalogos.gruas.length} etiqueta="Grúas registradas" tono="rosa" />
+        <TarjetaStat icon={Truck} valor={catalogos.fleteros.length} etiqueta="Fleteros registrados" tono="teal" />
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-2">
@@ -101,7 +112,7 @@ export default function Inicio() {
           icon={Trees}
           verTodoHref="/extraccion"
           items={recientesFormatos}
-          vacio="Aún no hay formatos guardados."
+          vacio="Aún no hay extracciones guardadas."
           render={(f) => ({
             id: f.id,
             folio: f.folio || f.id,
@@ -110,8 +121,7 @@ export default function Inicio() {
             subtitulo: f.grua,
             total: calcularFormato({ generos: f.generos, ajustes: f.ajustes, iva_rate: f.iva_rate, isr_rate: f.isr_rate }).totalNeto,
             editarHref: `/extraccion/${f.id}/editar`,
-            imprimirHref: `/extraccion/imprimir/${f.id}`,
-            estado: f.estado
+            imprimirHref: `/extraccion/imprimir/${f.id}`
           })}
         />
         <ListaReciente
@@ -128,8 +138,7 @@ export default function Inicio() {
             subtitulo: `${(f.lineas || []).length} viaje${(f.lineas || []).length === 1 ? '' : 's'}`,
             total: calcularFlete({ lineas: f.lineas, precio_flete: f.precio_flete, ajustes: f.ajustes, iva_rate: f.iva_rate, retencion_rate: f.retencion_rate, isr_rate: f.isr_rate, precios_por_grua: preciosPorGrua }).total,
             editarHref: `/fletes/${f.id}/editar`,
-            imprimirHref: `/fletes/imprimir/${f.id}`,
-            estado: f.estado
+            imprimirHref: `/fletes/imprimir/${f.id}`
           })}
         />
       </div>
@@ -144,21 +153,14 @@ export default function Inicio() {
         </span>
         <ArrowRight className="h-4 w-4 text-ink-400" strokeWidth={2.25} />
       </Link>
-    </PageLayout>
-  );
-}
 
-function Stat({ icon: Icon, valor, etiqueta }) {
-  return (
-    <div className="rounded-card border border-surface-border bg-surface-card px-4 py-3.5 shadow-card">
-      <div className="flex items-center gap-1.5 text-ink-400">
-        <Icon className="h-3.5 w-3.5" strokeWidth={2.25} />
-      </div>
-      <div className="mt-1 text-[22px] font-extrabold leading-none text-ink-900">
-        {valor ?? <Loader2 className="h-[22px] w-[22px] animate-spin text-ink-300" strokeWidth={2.25} />}
-      </div>
-      <div className="mt-1 text-[12px] leading-tight text-ink-500">{etiqueta}</div>
-    </div>
+      <ElegirFletero
+        isOpen={elegirFletero}
+        onClose={() => setElegirFletero(false)}
+        fleteros={catalogos.fleteros.filter((f) => f && f.nombre)}
+        resumen={resumenFleteros}
+      />
+    </PageLayout>
   );
 }
 

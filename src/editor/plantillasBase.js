@@ -198,7 +198,7 @@ export function plantillaFlete2026() {
 
 export const PUNTOS_DE_PARTIDA = {
   blanco: { nombre: 'En blanco', crear: () => documentoVacio({ papel: 'carta' }) },
-  extraccion2026: { nombre: 'Extracción 2026 (oficial)', tipo: 'extraccion', crear: plantillaExtraccion2026 },
-  flete2026: { nombre: 'Flete 2026 (oficial)', tipo: 'flete', crear: plantillaFlete2026 },
+  extraccion2026: { nombre: 'Extracción 2026', tipo: 'extraccion', crear: plantillaExtraccion2026 },
+  flete2026: { nombre: 'Flete 2026', tipo: 'flete', crear: plantillaFlete2026 },
   fleteModerno: { nombre: 'Flete moderno', tipo: 'flete', crear: plantillaFleteModerno }
 };

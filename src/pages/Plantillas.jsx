@@ -77,7 +77,7 @@ export default function Plantillas() {
   const usar = async (id, tipo) => {
     try {
       await Api.usarPlantilla(id, tipo);
-      toast.exito(id ? 'Diseño en uso actualizado' : 'Se usará el diseño original 2026');
+      toast.exito(id ? 'Diseño en uso actualizado' : 'Se usará el diseño 2026');
       cargar();
     } catch (e) {
       toast.error(e.message);
@@ -119,7 +119,7 @@ export default function Plantillas() {
     const ok = await confirmar({
       titulo: `¿Eliminar «${p.nombre}»?`,
       texto: p.activo
-        ? 'Es el diseño que se usa al imprimir. Al eliminarlo se volverá a usar el diseño original 2026. Esta acción no se puede deshacer.'
+        ? 'Es el diseño que se usa al imprimir. Al eliminarlo se volverá a usar el diseño 2026. Esta acción no se puede deshacer.'
         : 'Esta acción no se puede deshacer.',
       textoConfirmar: 'Eliminar'
     });
@@ -138,7 +138,7 @@ export default function Plantillas() {
   const convertir = async (p) => {
     const ok = await confirmar({
       titulo: `¿Convertir «${p.nombre}» al editor nuevo?`,
-      texto: 'Este diseño se hizo con el editor anterior y no se puede abrir aquí. Se reemplazará por la recreación editable del formato oficial 2026, conservando el nombre.',
+      texto: 'Este diseño se hizo con el editor anterior y no se puede abrir aquí. Se reemplazará por la recreación editable del formato 2026, conservando el nombre.',
       textoConfirmar: 'Convertir',
       peligro: false
     });
@@ -185,8 +185,8 @@ export default function Plantillas() {
           }}
         >
           {[
-            <SelectItem key={ORIGINAL} textValue="Original 2026 (sistema)" description="El diseño fijo que ya usaba la app">Original 2026 (sistema)</SelectItem>,
-            ...opciones.map((p) => <SelectItem key={String(p.id)} textValue={p.nombre} description={`Editado ${fechaCorta(p.updated_at)}`}>{p.nombre}</SelectItem>)
+            <SelectItem key={ORIGINAL} textValue="2026">2026</SelectItem>,
+            ...opciones.map((p) => <SelectItem key={String(p.id)} textValue={p.nombre}>{p.nombre}</SelectItem>)
           ]}
         </Select>
       </div>
@@ -196,7 +196,6 @@ export default function Plantillas() {
   return (
     <PageLayout
       title="Formatos"
-      subtitle="Diseña los comprobantes de Extracción y Fletes, y elige cuál se usa al imprimir."
       action={<Button color="primary" startContent={<Plus className="h-4 w-4" />} onPress={() => setNuevo({ nombre: '', tipo: 'extraccion', origen: 'extraccion2026' })}>Nuevo formato</Button>}
     >
       <Panel titulo="Diseño en uso" icon={Star}>
@@ -206,7 +205,6 @@ export default function Plantillas() {
             {selectorUso('flete', Truck)}
           </div>
         )}
-        <p className="mt-3 text-[12px] text-ink-500">El cambio aplica de inmediato en todas las computadoras: impresión y vistas previas de los formularios.</p>
       </Panel>
 
       <div className="mb-4 flex items-center justify-between gap-3">
@@ -224,7 +222,6 @@ export default function Plantillas() {
           <CardBody className="flex flex-col items-center gap-3 p-10 text-center">
             <LayoutTemplate className="h-10 w-10 text-ink-300" />
             <p className="m-0 text-[15px] font-semibold text-ink-800">Aún no hay diseños</p>
-            <p className="m-0 max-w-md text-sm text-ink-500">Empieza desde el formato oficial 2026 y ajústalo para el nuevo año, o crea uno desde cero.</p>
             <Button color="primary" variant="flat" startContent={<Plus className="h-4 w-4" />} onPress={() => setNuevo({ nombre: '', tipo: filtro === 'flete' ? 'flete' : 'extraccion', origen: filtro === 'flete' ? 'flete2026' : 'extraccion2026' })}>Crear el primero</Button>
           </CardBody>
         </Card>
@@ -242,7 +239,7 @@ export default function Plantillas() {
                 <div className="flex h-60 flex-col items-center justify-center gap-2 rounded-lg bg-warning-bg p-4 text-center">
                   <TriangleAlert className="h-8 w-8 text-warning" />
                   <p className="m-0 text-[13px] font-semibold text-ink-800">Hecho con el editor anterior</p>
-                  <p className="m-0 text-[12px] text-ink-500">No se puede abrir ni imprimir con el editor nuevo; al imprimir se usa el original 2026.</p>
+                  <p className="m-0 text-[12px] text-ink-500">No se puede abrir ni imprimir con el editor nuevo; al imprimir se usa el 2026.</p>
                   <Button size="sm" color="warning" variant="flat" startContent={<RefreshCw className="h-3.5 w-3.5" />} onPress={() => convertir(p)}>Convertir</Button>
                 </div>
               )}
@@ -314,11 +311,11 @@ export default function Plantillas() {
                   onSelectionChange={(k) => setNuevo({ ...nuevo, origen: String([...k][0]) })}
                 >
                   {[
-                    <SelectItem key={nuevo.tipo === 'flete' ? 'flete2026' : 'extraccion2026'} textValue="Formato oficial 2026" startContent={<FileText className="h-4 w-4" />} description="Recreación editable del comprobante actual">Formato oficial 2026</SelectItem>,
+                    <SelectItem key={nuevo.tipo === 'flete' ? 'flete2026' : 'extraccion2026'} textValue="2026" startContent={<FileText className="h-4 w-4" />}>2026</SelectItem>,
                     ...(nuevo.tipo === 'flete'
-                      ? [<SelectItem key="fleteModerno" textValue="Flete moderno" startContent={<LayoutTemplate className="h-4 w-4" />} description="Tarjeta con tabla verde, insignias y resumen a color">Flete moderno</SelectItem>]
+                      ? [<SelectItem key="fleteModerno" textValue="Flete moderno" startContent={<LayoutTemplate className="h-4 w-4" />}>Flete moderno</SelectItem>]
                       : []),
-                    <SelectItem key="blanco" textValue="En blanco" startContent={<LayoutTemplate className="h-4 w-4" />} description="Hoja carta vacía">En blanco</SelectItem>,
+                    <SelectItem key="blanco" textValue="En blanco" startContent={<LayoutTemplate className="h-4 w-4" />}>En blanco</SelectItem>,
                     ...(lista || []).filter((p) => p.tipo === nuevo.tipo && p.compatible).map((p) => (
                       <SelectItem key={`copia:${p.id}`} textValue={`Copia de ${p.nombre}`} startContent={<Copy className="h-4 w-4" />}>Copia de «{p.nombre}»</SelectItem>
                     ))

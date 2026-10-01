@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
-  Building2, Percent, ImageIcon, Layers, Trees, Truck, MapPin, UserRound,
+  Building2, Percent, Layers, Trees, Truck, MapPin, UserRound,
   Save, Loader2
 } from 'lucide-react';
 import { Api } from '../lib/api.js';
@@ -92,7 +92,6 @@ export default function Ajustes() {
   return (
     <PageLayout
       title="Ajustes"
-      subtitle="Configuración general y catálogos compartidos por Extracción y Fletes. El diseño de los comprobantes impresos no cambia."
     >
       <form onSubmit={guardarGeneral}>
         <Panel titulo="Empresa y formato" icon={Building2}>
@@ -128,21 +127,6 @@ export default function Ajustes() {
               <input type="number" step="0.0001" className="form-input" value={general.fletes_isr_rate_pct} onChange={(e) => campoGeneral('fletes_isr_rate_pct', e.target.value)} />
             </Campo>
           </div>
-          <p className="mt-2 text-xs text-ink-500">
-            Estos porcentajes se aplican a los formatos/fletes nuevos. Los ya guardados conservan las tasas con
-            las que se crearon; el IVA/ISR/Retención también se puede quitar o cambiar por documento.
-          </p>
-        </Panel>
-
-        <Panel titulo="Logo" icon={ImageIcon}>
-          <p className="text-xs text-ink-500">
-            El logo de la app (barra superior, ícono, pantalla de carga) es <code>public/images/LogoFletes.png</code>.
-            El logo del formato impreso de Extracción es <code>public/images/logo.png</code> y no cambia.
-          </p>
-          <div className="mt-3 flex items-center gap-4">
-            <img src="/images/LogoFletes.png" alt="logo de la app" className="h-[70px] w-[70px] rounded-xl border border-[#ddd] object-contain" />
-            <img src="/images/logo.png" alt="logo del formato" className="h-[70px] w-[70px] rounded-full border border-[#ddd] object-cover" />
-          </div>
         </Panel>
 
         <div className="mb-2 flex flex-wrap justify-end gap-2.5">
@@ -157,15 +141,10 @@ export default function Ajustes() {
         <Layers className="h-5 w-5 text-brand-700" strokeWidth={2.25} />
         <h2 className="m-0 text-lg font-extrabold text-brand-700">Catálogos</h2>
       </div>
-      <p className="-mt-2 mb-4 text-xs text-ink-500">
-        Listas compartidas que se eligen al crear un formato o un flete. Cada catálogo se guarda por su cuenta
-        con su propio botón — no hace falta guardar todo junto.
-      </p>
 
       <CatalogoEditor
         icon={Trees}
         titulo="Géneros"
-        descripcion="Géneros y su precio por defecto, ya listos al crear un formato de Extracción nuevo."
         settingsKey="generos_default_json"
         valorInicial={catalogos.generos}
         filaVacia={{ nombre: '', precio: 0 }}
@@ -178,7 +157,6 @@ export default function Ajustes() {
       <CatalogoEditor
         icon={Truck}
         titulo="Grúas"
-        descripcion="Cada grúa tiene un productor fijo (Extracción) y un precio de flete (Fletes)."
         settingsKey="gruas_json"
         valorInicial={catalogos.gruas}
         filaVacia={{ grua: '', productor: '', precio_flete: 0 }}
@@ -192,7 +170,6 @@ export default function Ajustes() {
       <CatalogoEditor
         icon={MapPin}
         titulo="Destinos"
-        descripcion="Aparece junto al productor en el formato de Extracción (antes fijo, ahora se elige por formato)."
         settingsKey="destinos_json"
         valorInicial={catalogos.destinos}
         filaVacia={{ nombre: '' }}
@@ -202,7 +179,6 @@ export default function Ajustes() {
       <CatalogoEditor
         icon={UserRound}
         titulo="Fleteros"
-        descripcion="Nombre del fletero y si aplica retención e ISR. Estos switches se aplican al crear un flete nuevo para ese fletero."
         settingsKey="fleteros_json"
         valorInicial={catalogos.fleteros}
         filaVacia={{ nombre: '', retencion: true, isr: false }}
@@ -216,7 +192,6 @@ export default function Ajustes() {
       <CatalogoEditor
         icon={MapPin}
         titulo="Parajes"
-        descripcion="Lugares de origen de la madera, elegibles por cada viaje en el comprobante de Fletes."
         settingsKey="parajes_json"
         valorInicial={catalogos.parajes}
         filaVacia={{ nombre: '' }}

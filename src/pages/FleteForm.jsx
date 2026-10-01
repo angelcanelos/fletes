@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
-  Save, X, Plus, Trash2, Loader2, TriangleAlert, Ban, CircleCheck,
+  Save, X, Plus, Trash2, Loader2, TriangleAlert,
   ClipboardList, Route, Percent, NotebookPen, Wallet
 } from 'lucide-react';
 import { Api } from '../lib/api.js';
 import PageLayout from '../components/PageLayout.jsx';
 import Panel from '../components/Panel.jsx';
 import Campo from '../components/Campo.jsx';
+import SwitchImpuesto from '../components/SwitchImpuesto.jsx';
 import ReciboFlete from '../components/ReciboFlete.jsx';
 import { useToast } from '../components/Toast.jsx';
 import useZoomAjustado from '../hooks/useZoomAjustado.js';
@@ -60,6 +61,16 @@ const datosVacios = {
   observaciones: ''
 };
 
+// Tasas por defecto de Fletes en el catálogo (Ajustes).
+function tasasCatalogo(s) {
+  const tasa = (v, defecto) => (v != null ? Number(v) : defecto);
+  return {
+    iva: tasa(s.fletes_iva_rate, 0.16),
+    retencion: tasa(s.fletes_retencion_rate, 0.04),
+    isr: tasa(s.fletes_isr_rate, 0.0125)
+  };
+}
+
 export default function FleteForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -71,10 +82,11 @@ export default function FleteForm() {
   const [datos, setDatos] = useState(datosVacios);
   const [cargando, setCargando] = useState(true);
   const [mensaje, setMensaje] = useState(null);
+  // Los porcentajes vienen del catálogo (Ajustes); aquí solo se elige si
+  // cada impuesto se aplica a este flete.
+  const [ivaActivo, setIvaActivo] = useState(true);
   const [retencionActiva, setRetencionActiva] = useState(true);
-  const [retencionBackup, setRetencionBackup] = useState(4);
   const [isrActivo, setIsrActivo] = useState(true);
-  const [isrBackup, setIsrBackup] = useState(1.25);
   const [guardando, setGuardando] = useState(false);
   const toast = useToast();
   // Si hay un diseño del Editor de Formatos en uso, la vista previa lo usa.
@@ -95,38 +107,29 @@ export default function FleteForm() {
             : [{ ...lineaVacia }],
           precio_flete: ceroVacio(f.precio_flete),
           ajustes: (f.ajustes || []).map((a) => ({ etiqueta: a.etiqueta, monto: ceroVacio(a.monto) })),
-          iva_rate_pct: f.iva_rate * 100,
-          retencion_rate_pct: f.retencion_rate * 100,
-          isr_rate_pct: f.isr_rate * 100,
+          iva_rate_pct: (f.iva_rate > 0 ? f.iva_rate : tasasCatalogo(s).iva) * 100,
+          retencion_rate_pct: (f.retencion_rate > 0 ? f.retencion_rate : tasasCatalogo(s).retencion) * 100,
+          isr_rate_pct: (f.isr_rate > 0 ? f.isr_rate : tasasCatalogo(s).isr) * 100,
           observaciones: f.observaciones || ''
         });
+        setIvaActivo(f.iva_rate > 0);
         setRetencionActiva(f.retencion_rate > 0);
-        if (f.retencion_rate > 0) setRetencionBackup(f.retencion_rate * 100);
         setIsrActivo(f.isr_rate > 0);
-        if (f.isr_rate > 0) setIsrBackup(f.isr_rate * 100);
       } else {
-        // Si hay un fletero pre-seleccionado por URL, usar sus tasas del catálogo
-        let retRate = (s.fletes_retencion_rate != null ? s.fletes_retencion_rate : 0.04);
-        let isrRate = (s.fletes_isr_rate != null ? s.fletes_isr_rate : 0.0125);
-        if (fleteroInicial) {
-          const fleteros = parseFleteros(s);
-          const fletero = fleteros.find((f) => f.nombre === fleteroInicial);
-          if (fletero) {
-            retRate = fletero.retencion ? 0.04 : 0;
-            isrRate = fletero.isr ? 0.0125 : 0;
-          }
-        }
+        const tasas = tasasCatalogo(s);
         setDatos((d) => ({
           ...d,
           fletero: fleteroInicial,
-          iva_rate_pct: (s.fletes_iva_rate != null ? s.fletes_iva_rate : 0.16) * 100,
-          retencion_rate_pct: retRate * 100,
-          isr_rate_pct: isrRate * 100
+          iva_rate_pct: tasas.iva * 100,
+          retencion_rate_pct: tasas.retencion * 100,
+          isr_rate_pct: tasas.isr * 100
         }));
-        setRetencionActiva(retRate > 0);
-        setRetencionBackup(retRate * 100);
-        setIsrActivo(isrRate > 0);
-        setIsrBackup(isrRate * 100);
+        setIvaActivo(tasas.iva > 0);
+        // Si hay un fletero pre-seleccionado por URL, el catálogo dice si
+        // lleva retención e ISR.
+        const fletero = parseFleteros(s).find((f) => f.nombre === fleteroInicial);
+        setRetencionActiva(fletero ? Boolean(fletero.retencion) : tasas.retencion > 0);
+        setIsrActivo(fletero ? Boolean(fletero.isr) : tasas.isr > 0);
       }
       setCargando(false);
     })();
@@ -135,44 +138,18 @@ export default function FleteForm() {
   function campo(name, value) {
     setDatos((d) => {
       const nuevo = { ...d, [name]: value };
-      // Cuando cambia el fletero, auto-llenar retención e ISR desde el catálogo
+      // Cuando cambia el fletero, el catálogo dice si lleva retención e ISR
       if (name === 'fletero' && !esEdicion) {
-        const fleteros = parseFleteros(settings);
-        const fletero = fleteros.find((f) => f.nombre === value);
+        const fletero = parseFleteros(settings).find((f) => f.nombre === value);
         if (fletero) {
-          const retRate = fletero.retencion ? 0.04 : 0;
-          const isrRate = fletero.isr ? 0.0125 : 0;
-          nuevo.retencion_rate_pct = retRate * 100;
-          nuevo.isr_rate_pct = isrRate * 100;
-          setRetencionActiva(retRate > 0);
-          setRetencionBackup(retRate * 100);
-          setIsrActivo(isrRate > 0);
-          setIsrBackup(isrRate * 100);
+          setRetencionActiva(Boolean(fletero.retencion));
+          setIsrActivo(Boolean(fletero.isr));
         }
       }
       return nuevo;
     });
   }
 
-  function toggleRetencion() {
-    if (retencionActiva) {
-      setRetencionBackup(datos.retencion_rate_pct || retencionBackup);
-      campo('retencion_rate_pct', 0);
-    } else {
-      campo('retencion_rate_pct', retencionBackup || 4);
-    }
-    setRetencionActiva(!retencionActiva);
-  }
-
-  function toggleIsr() {
-    if (isrActivo) {
-      setIsrBackup(datos.isr_rate_pct || isrBackup);
-      campo('isr_rate_pct', 0);
-    } else {
-      campo('isr_rate_pct', isrBackup || 1.25);
-    }
-    setIsrActivo(!isrActivo);
-  }
 
   function saltarAlSiguiente(e) {
     if (e.key === 'Enter') {
@@ -243,7 +220,7 @@ export default function FleteForm() {
       ajustes: datos.ajustes
         .filter((a) => (a.etiqueta || '').trim())
         .map((a) => ({ etiqueta: a.etiqueta.trim(), monto: parseFloat(a.monto) || 0 })),
-      iva_rate: (parseFloat(datos.iva_rate_pct) || 0) / 100,
+      iva_rate: ivaActivo ? (parseFloat(datos.iva_rate_pct) || 0) / 100 : 0,
       retencion_rate: retencionActiva ? (parseFloat(datos.retencion_rate_pct) || 0) / 100 : 0,
       isr_rate: isrActivo ? (parseFloat(datos.isr_rate_pct) || 0) / 100 : 0,
       observaciones: (datos.observaciones || '').trim()
@@ -283,7 +260,6 @@ export default function FleteForm() {
   return (
     <PageLayout
       title={esEdicion ? 'Editar flete' : 'Nuevo flete'}
-      subtitle="Llena los datos y revisa la vista previa: así se verá e imprimirá el comprobante."
       ancho="completo"
     >
       {mensaje && (
@@ -306,62 +282,46 @@ export default function FleteForm() {
               <Campo label="Fecha del documento">
                 <input type="date" className="form-input" required value={datos.fecha} onChange={(e) => campo('fecha', e.target.value)} onKeyDown={saltarAlSiguiente} />
               </Campo>
-              <Campo label="Estado">
-                <select className="form-input" value={datos.estado} onChange={(e) => campo('estado', e.target.value)} onKeyDown={saltarAlSiguiente}>
-                  <option value="guardado">Guardado</option>
-                  <option value="pagado">Pagado</option>
-                </select>
-              </Campo>
             </div>
-            <p className="mt-2.5 text-xs text-ink-500">
-              El fletero se administra en Ajustes → Catálogos.
-            </p>
           </Panel>
 
           <Panel titulo="Viajes (fecha, folio, paraje, grúa y metros)" icon={Route}>
-            <div className="mt-2 overflow-x-auto">
-              <table className="w-full min-w-[980px] border-collapse">
-                <thead>
-                  <tr>
-                    {['Fecha', 'Folio', 'Paraje', 'Grúa', 'Metros', ''].map((h) => (
-                      <th key={h} className="px-2 py-1 text-left text-xs uppercase text-ink-500">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {datos.lineas.map((l, i) => {
-                    const opcionesParaje = parajes.some((p) => p.nombre === l.paraje) || !l.paraje
-                      ? parajes
-                      : [...parajes, { nombre: l.paraje }];
-                    return (
-                    <tr key={i}>
-                      <td className="w-[170px] px-2 py-2"><input type="date" className="form-input w-full" value={l.fecha} onChange={(e) => lineaCampo(i, 'fecha', e.target.value)} onKeyDown={saltarAlSiguiente} /></td>
-                      <td className="w-[150px] px-2 py-2"><input className="form-input w-full" placeholder="2212 0189" value={l.folio} onChange={(e) => lineaCampo(i, 'folio', e.target.value)} onKeyDown={saltarAlSiguiente} /></td>
-                      <td className="min-w-[220px] px-2 py-2">
-                        <select className="form-input w-full" value={l.paraje} onChange={(e) => lineaCampo(i, 'paraje', e.target.value)} onKeyDown={saltarAlSiguiente}>
-                          <option value="">Selecciona…</option>
-                          {opcionesParaje.map((p) => <option key={p.nombre} value={p.nombre}>{p.nombre}</option>)}
-                        </select>
-                      </td>
-                      <td className="w-[160px] px-2 py-2">
-                        <select className="form-input w-full" value={l.grua} onChange={(e) => lineaCampo(i, 'grua', e.target.value)} onKeyDown={saltarAlSiguiente}>
-                          <option value="">—</option>
-                          {gruas.map((g) => <option key={g.grua} value={g.grua}>{g.grua}</option>)}
-                        </select>
-                      </td>
-                      <td className="w-[130px] px-2 py-2"><input type="number" step="0.001" className="form-input w-full" placeholder="0" value={l.metros} onChange={(e) => lineaCampo(i, 'metros', e.target.value)} onKeyDown={saltarAlSiguiente} /></td>
-                      <td className="w-[56px] px-2 py-2">
-                        <BotonQuitar disabled={datos.lineas.length <= 1} onClick={() => quitarLinea(i)} title="Quitar viaje" />
-                      </td>
-                    </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            {/* Cada viaje es una fila que se acomoda sola: en pantallas anchas
+                cabe completa y en las angostas grúa y metros bajan a una
+                segunda línea, así los metros siempre se ven sin desplazarse. */}
+            <div className="mt-1 flex flex-col gap-2.5">
+              {datos.lineas.map((l, i) => {
+                const opcionesParaje = parajes.some((p) => p.nombre === l.paraje) || !l.paraje
+                  ? parajes
+                  : [...parajes, { nombre: l.paraje }];
+                return (
+                  <div key={i} className="flex flex-wrap items-end gap-2 rounded-2xl border border-surface-border bg-surface-muted/40 p-3">
+                    <CampoViaje label="Fecha" className="w-[140px]">
+                      <input type="date" className="form-input w-full px-2.5" value={l.fecha} onChange={(e) => lineaCampo(i, 'fecha', e.target.value)} onKeyDown={saltarAlSiguiente} />
+                    </CampoViaje>
+                    <CampoViaje label="Folio" className="w-[110px]">
+                      <input className="form-input w-full px-2.5" placeholder="2212 0189" value={l.folio} onChange={(e) => lineaCampo(i, 'folio', e.target.value)} onKeyDown={saltarAlSiguiente} />
+                    </CampoViaje>
+                    <CampoViaje label="Paraje" className="min-w-[180px] flex-1">
+                      <select className="form-input w-full truncate px-2.5" value={l.paraje} onChange={(e) => lineaCampo(i, 'paraje', e.target.value)} onKeyDown={saltarAlSiguiente}>
+                        <option value="">Selecciona…</option>
+                        {opcionesParaje.map((p) => <option key={p.nombre} value={p.nombre}>{p.nombre}</option>)}
+                      </select>
+                    </CampoViaje>
+                    <CampoViaje label="Grúa" className="w-[120px]">
+                      <select className="form-input w-full px-2.5" value={l.grua} onChange={(e) => lineaCampo(i, 'grua', e.target.value)} onKeyDown={saltarAlSiguiente}>
+                        <option value="">—</option>
+                        {gruas.map((g) => <option key={g.grua} value={g.grua}>{g.grua}</option>)}
+                      </select>
+                    </CampoViaje>
+                    <CampoViaje label="Metros" className="w-[100px]">
+                      <input type="number" step="0.001" className="form-input w-full px-2.5" placeholder="0" value={l.metros} onChange={(e) => lineaCampo(i, 'metros', e.target.value)} onKeyDown={saltarAlSiguiente} />
+                    </CampoViaje>
+                    <BotonQuitar disabled={datos.lineas.length <= 1} onClick={() => quitarLinea(i)} title="Quitar viaje" />
+                  </div>
+                );
+              })}
             </div>
-            <p className="mt-2.5 text-xs text-ink-500">
-              El paraje se administra en Ajustes → Catálogos.
-            </p>
             <BotonAgregar onClick={agregarLinea}>Agregar viaje</BotonAgregar>
           </Panel>
 
@@ -370,49 +330,15 @@ export default function FleteForm() {
               <Campo label="Precio flete $">
                 <input type="number" step="0.01" className="form-input" placeholder="0" value={datos.precio_flete} onChange={(e) => campo('precio_flete', e.target.value)} onKeyDown={saltarAlSiguiente} />
               </Campo>
-              <Campo label="IVA %">
-                <input type="number" step="0.01" className="form-input" value={datos.iva_rate_pct} onChange={(e) => campo('iva_rate_pct', e.target.value)} onKeyDown={saltarAlSiguiente} />
-              </Campo>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[13px] font-bold text-ink-800">Retención %</label>
-                <input type="number" step="0.01" className="form-input w-full disabled:bg-surface-muted disabled:text-ink-400"
-                  disabled={!retencionActiva} value={datos.retencion_rate_pct} onChange={(e) => campo('retencion_rate_pct', e.target.value)} onKeyDown={saltarAlSiguiente} />
-                <button type="button" onClick={toggleRetencion}
-                  className={`flex w-fit items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-bold transition-colors ${
-                    retencionActiva ? 'bg-danger-bg text-danger hover:bg-[#f6cfc9]' : 'bg-brand-50 text-brand-700 hover:bg-brand-100'
-                  }`}
-                >
-                  {retencionActiva ? <Ban className="h-3.5 w-3.5" strokeWidth={2.25} /> : <CircleCheck className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                  {retencionActiva ? 'Quitar retención' : 'Aplicar retención'}
-                </button>
-              </div>
-              <div className="flex flex-col gap-1.5">
-                <label className="text-[13px] font-bold text-ink-800">ISR %</label>
-                <input type="number" step="0.0001" className="form-input w-full disabled:bg-surface-muted disabled:text-ink-400"
-                  disabled={!isrActivo} value={datos.isr_rate_pct} onChange={(e) => campo('isr_rate_pct', e.target.value)} onKeyDown={saltarAlSiguiente} />
-                <button type="button" onClick={toggleIsr}
-                  className={`flex w-fit items-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-[13px] font-bold transition-colors ${
-                    isrActivo ? 'bg-danger-bg text-danger hover:bg-[#f6cfc9]' : 'bg-brand-50 text-brand-700 hover:bg-brand-100'
-                  }`}
-                >
-                  {isrActivo ? <Ban className="h-3.5 w-3.5" strokeWidth={2.25} /> : <CircleCheck className="h-3.5 w-3.5" strokeWidth={2.25} />}
-                  {isrActivo ? 'Quitar ISR' : 'Aplicar ISR'}
-                </button>
-              </div>
             </div>
-            <p className="mt-2.5 text-xs text-ink-500">
-              Cada viaje usa el precio de su propia grúa (catálogo en Ajustes). Si un flete trae viajes de
-              varias grúas, el comprobante calcula el subtotal de metros y el total de cada una por separado.
-              Este precio manual solo se usa si un viaje no tiene grúa del catálogo. La retención y el ISR
-              son opcionales — algunos fletes no los llevan.
-            </p>
+            <div className="mt-4 grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3">
+              <SwitchImpuesto nombre="IVA" porcentaje={datos.iva_rate_pct} activo={ivaActivo} onCambiar={setIvaActivo} />
+              <SwitchImpuesto nombre="Retención" porcentaje={datos.retencion_rate_pct} activo={retencionActiva} onCambiar={setRetencionActiva} />
+              <SwitchImpuesto nombre="ISR" porcentaje={datos.isr_rate_pct} activo={isrActivo} onCambiar={setIsrActivo} />
+            </div>
           </Panel>
 
           <Panel titulo="Ajustes (descuentos o cargos adicionales)" icon={Wallet}>
-            <p className="mb-3 text-xs text-ink-500">
-              Agrega solo los ajustes que apliquen a este flete: por ejemplo un descuento o cualquier cargo
-              extra. Un monto negativo se resta, uno positivo se suma; todos afectan el total.
-            </p>
             {datos.ajustes.length > 0 && (
               <table className="w-full border-collapse">
                 <thead>
@@ -477,7 +403,7 @@ export default function FleteForm() {
                         lineas: datos.lineas,
                         precio_flete: datos.precio_flete,
                         ajustes: datos.ajustes,
-                        iva_rate: (parseFloat(datos.iva_rate_pct) || 0) / 100,
+                        iva_rate: ivaActivo ? (parseFloat(datos.iva_rate_pct) || 0) / 100 : 0,
                         retencion_rate: retencionActiva ? (parseFloat(datos.retencion_rate_pct) || 0) / 100 : 0,
                         isr_rate: isrActivo ? (parseFloat(datos.isr_rate_pct) || 0) / 100 : 0,
                         observaciones: datos.observaciones
@@ -490,7 +416,7 @@ export default function FleteForm() {
                       lineas={datos.lineas}
                       precioFlete={datos.precio_flete}
                       ajustes={datos.ajustes}
-                      ivaRate={(parseFloat(datos.iva_rate_pct) || 0) / 100}
+                      ivaRate={ivaActivo ? (parseFloat(datos.iva_rate_pct) || 0) / 100 : 0}
                       retencionRate={retencionActiva ? (parseFloat(datos.retencion_rate_pct) || 0) / 100 : 0}
                       isrRate={isrActivo ? (parseFloat(datos.isr_rate_pct) || 0) / 100 : 0}
                       gruasCatalog={gruas}
@@ -503,6 +429,15 @@ export default function FleteForm() {
         </div>
       </div>
     </PageLayout>
+  );
+}
+
+function CampoViaje({ label, className, children }) {
+  return (
+    <label className={`flex flex-col gap-1 ${className}`}>
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-ink-500">{label}</span>
+      {children}
+    </label>
   );
 }
 

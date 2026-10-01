@@ -74,14 +74,14 @@ export default function Login() {
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center gap-2.5 text-center">
           <img
-            src="/images/LogoFletes.png"
+            src="/images/logo-tezains.png"
             alt=""
             className="h-14 w-14 rounded-xl object-contain"
             onError={(e) => { e.currentTarget.style.display = 'none'; }}
           />
           <div>
-            <div className="text-lg font-bold text-white">Forestal Tezains</div>
-            <div className="text-xs font-medium uppercase tracking-wide text-ink-400">Extracción &amp; Fletes</div>
+            <div className="text-lg font-bold text-white">Gestión</div>
+            <div className="text-xs font-medium uppercase tracking-wide text-ink-400">Extracción y Fletes</div>
           </div>
         </div>
 
@@ -89,7 +89,6 @@ export default function Login() {
           {modo === 'login' ? (
             <form onSubmit={enviarLogin}>
               <h1 className="m-0 mb-1 text-lg font-bold text-ink-900">Iniciar sesión</h1>
-              <p className="mb-5 text-sm text-ink-500">Entra con tu correo y contraseña para continuar.</p>
 
               {!enLinea && !error && (
                 <div className="mb-4 flex items-start gap-2 rounded-[10px] bg-warning-bg px-3.5 py-2.5 text-sm text-warning">
@@ -147,9 +146,6 @@ export default function Login() {
                 Entrar
               </Button>
 
-              <p className="mt-4 text-center text-xs text-ink-400">
-                ¿No tienes cuenta? Pídele al administrador que te invite desde el panel de Supabase.
-              </p>
             </form>
           ) : (
             <form onSubmit={enviarRestablecer}>

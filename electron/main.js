@@ -7,7 +7,13 @@ const { pathToFileURL } = require('url');
 // espejo/cola offline vive en IndexedDB, dentro del propio navegador que
 // usa Electron (Chromium) — así que solo hace falta cargar la página ya
 // compilada. Por eso este main.js es mucho más simple.
-app.setName('Forestal Tezains');
+app.setName('Gestión Extracción y Fletes');
+
+// La app se llamaba "Forestal Tezains" y Electron guarda sus datos locales
+// (el espejo offline en IndexedDB, la cola de cambios por subir y la
+// sesión) en una carpeta con el nombre de la app. Se fija la carpeta de
+// antes para que, al actualizar, no se pierda nada de eso.
+app.setPath('userData', path.join(app.getPath('appData'), 'Forestal Tezains'));
 
 // Cargar dist/index.html con file:// directo NO funciona: Chromium trata
 // cada archivo file:// como un origen "opaco" y bloquea por CORS el
