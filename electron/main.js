@@ -27,7 +27,22 @@ app.setPath('userData', path.join(app.getPath('appData'), 'Forestal Tezains'));
 // que ya existía. Antes se abrían varias que compartían la misma carpeta
 // de datos (IndexedDB) y se bloqueaban entre sí, y dejaban de cargar.
 // Va después de setPath('userData') porque el candado vive en esa carpeta.
-if (!app.requestSingleInstanceLock()) {
+// Justo después de actualizar, el instalador abre la versión nueva
+// (--updated) mientras la vieja puede seguir cerrándose y tener el
+// candado todavía: en ese caso se reintenta unos segundos en vez de
+// cerrarse, que era por lo que la app no volvía a abrir sola.
+function tomarCandado() {
+  if (app.requestSingleInstanceLock()) return true;
+  if (!process.argv.includes('--updated')) return false;
+  const espera = new Int32Array(new SharedArrayBuffer(4));
+  for (let i = 0; i < 40; i++) {
+    Atomics.wait(espera, 0, 0, 250);
+    if (app.requestSingleInstanceLock()) return true;
+  }
+  return false;
+}
+
+if (!tomarCandado()) {
   app.quit();
   process.exit(0);
 }

@@ -1,6 +1,6 @@
 {
   "name": "fletes-v2",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Gestión Extracción y Fletes: app de Forestal Tezains con base de datos en Supabase en tiempo real; la versión de escritorio sigue funcionando sin internet y sincroniza sola al reconectar.",
   "main": "electron/main.js",
   "scripts": {
@@ -74,7 +74,8 @@
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "artifactName": "Gestion-Extraccion-y-Fletes-Setup-${version}.${ext}"
+      "artifactName": "Gestion-Extraccion-y-Fletes-Setup-${version}.${ext}",
+      "include": "build/installer.nsh"
     },
     "publish": [
       {
