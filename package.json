@@ -1,6 +1,6 @@
 {
   "name": "fletes-v2",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Gestión Extracción y Fletes: app de Forestal Tezains con base de datos en Supabase en tiempo real; la versión de escritorio sigue funcionando sin internet y sincroniza sola al reconectar.",
   "main": "electron/main.js",
   "scripts": {
@@ -10,7 +10,7 @@
     "preview": "vite preview",
     "electron:dev": "npm run build && electron .",
     "electron:build": "npm run build && electron-builder --win --publish never",
-    "electron:release": "npm run build && electron-builder --win --publish always"
+    "electron:release": "npm run electron:build && node scripts/publicar-release.mjs"
   },
   "license": "UNLICENSED",
   "private": true,
