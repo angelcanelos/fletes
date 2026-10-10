@@ -1,6 +1,6 @@
 {
   "name": "fletes-v2",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Gestión Extracción y Fletes: app de Forestal Tezains con base de datos en Supabase en tiempo real; la versión de escritorio sigue funcionando sin internet y sincroniza sola al reconectar.",
   "main": "electron/main.js",
   "scripts": {
@@ -9,7 +9,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "electron:dev": "npm run build && electron .",
-    "electron:build": "npm run build && electron-builder --win --publish never"
+    "electron:build": "npm run build && electron-builder --win --publish never",
+    "electron:release": "npm run build && electron-builder --win --publish always"
   },
   "license": "UNLICENSED",
   "private": true,
@@ -18,6 +19,7 @@
     "@internationalized/date": "^3.12.4",
     "@supabase/supabase-js": "^2.116.0",
     "dexie": "^4.4.6",
+    "electron-updater": "^6.8.9",
     "framer-motion": "^11.18.2",
     "immer": "^11.1.18",
     "lucide-react": "^1.46.0",
@@ -71,7 +73,16 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
-    }
+      "createStartMenuShortcut": true,
+      "artifactName": "Gestion-Extraccion-y-Fletes-Setup-${version}.${ext}"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "angelcanelos",
+        "repo": "fletes",
+        "releaseType": "release"
+      }
+    ]
   }
 }

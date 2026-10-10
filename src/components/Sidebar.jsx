@@ -4,6 +4,7 @@ import { Button } from '@heroui/react';
 import { House, Pickaxe, Truck, Settings, Menu, X, LogOut, FileText, CircleUserRound } from 'lucide-react';
 import { useAuth } from '../lib/AuthContext.jsx';
 import SyncStatus from './SyncStatus.jsx';
+import AvisoActualizacion from './AvisoActualizacion.jsx';
 
 const items = [
   { to: '/inicio', label: 'Inicio', icon: House, end: true },
@@ -86,6 +87,8 @@ export default function Sidebar() {
       {/* Barra superior solo en móvil/tablet: abre el sidebar como overlay */}
       <div className="no-imprimir sticky top-0 z-40 flex items-center justify-between gap-3 border-b border-surface-border bg-white/85 px-4 py-3 backdrop-blur-xl lg:hidden">
         <Marca chica />
+        <div className="flex-1" />
+        <AvisoActualizacion chica />
         <Button
           isIconOnly
           variant="light"
@@ -112,6 +115,10 @@ export default function Sidebar() {
       >
         <div className="mb-9 px-7">
           <Marca />
+        </div>
+
+        <div className="-mt-4 mb-6 px-5 empty:hidden">
+          <AvisoActualizacion />
         </div>
 
         <NavItems onNavigate={() => setAbierto(false)} />
