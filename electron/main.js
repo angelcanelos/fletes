@@ -2,6 +2,7 @@ const { app, BrowserWindow, Menu, protocol, ipcMain } = require('electron');
 const { autoUpdater } = require('electron-updater');
 const path = require('path');
 const fs = require('fs');
+const { spawn } = require('child_process');
 
 // A diferencia de extraccion-app, esta versión no levanta un servidor
 // local ni una base SQLite propia: los datos viven en Supabase y el
@@ -194,11 +195,26 @@ autoUpdater.on('download-progress', (p) => {
   enviarAlSplash({ fase: 'descargando', porcentaje: Math.round(p.percent || 0) });
 });
 
-autoUpdater.on('update-downloaded', () => {
+autoUpdater.on('update-downloaded', (info) => {
   enviarAlSplash({ fase: 'instalando' });
-  // Un respiro para que se alcance a leer "Instalando…" antes de cerrar.
-  // quitAndInstall(silencioso, volver a abrir al terminar).
-  setTimeout(() => autoUpdater.quitAndInstall(true, true), 1200);
+  // Instalar tarda de 20 a 50 s, casi todo es Windows revisando los
+  // archivos nuevos. Con quitAndInstall la app se cerraba al instante y en
+  // ese rato no se veía nada: parecía que se había cerrado sola. Por eso se
+  // lanza el instalador directo y la app NO se cierra: el splash sigue
+  // diciendo "Instalando…" hasta que el instalador ya está listo, muestra
+  // su ventanita de progreso y él mismo cierra la app (con --updated lo
+  // hace sin preguntar). Al terminar vuelve a abrirla (--force-run).
+  try {
+    spawn(info.downloadedFile, ['--updated', '--force-run'], { detached: true, stdio: 'ignore' }).unref();
+    // Por si el instalador nunca llega a cerrar la app (lo cancelaron o
+    // falló), no dejarla escondida detrás del splash para siempre.
+    setTimeout(() => {
+      if (actualizando) terminarActualizacion('No se pudo terminar la instalación. Inténtalo más tarde.');
+    }, 3 * 60 * 1000);
+  } catch (err) {
+    console.error('[actualizaciones]', err);
+    autoUpdater.quitAndInstall(false, true);
+  }
 });
 
 autoUpdater.on('error', (err) => {
@@ -233,7 +249,12 @@ function crearSplash() {
   });
   splashWindow.loadFile(path.join(__dirname, 'splash.html'));
   splashWindow.once('ready-to-show', () => splashWindow.show());
-  splashWindow.on('closed', () => { splashWindow = null; });
+  splashWindow.on('closed', () => {
+    splashWindow = null;
+    // Si lo cerró el instalador (no terminarActualizacion), la ventana
+    // principal sigue oculta: se cierra la app para que pueda instalar.
+    if (actualizando) app.quit();
+  });
   return new Promise((resolve) => splashWindow.webContents.once('did-finish-load', resolve));
 }
 

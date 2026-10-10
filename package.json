@@ -1,6 +1,6 @@
 {
   "name": "fletes-v2",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Gestión Extracción y Fletes: app de Forestal Tezains con base de datos en Supabase en tiempo real; la versión de escritorio sigue funcionando sin internet y sincroniza sola al reconectar.",
   "main": "electron/main.js",
   "scripts": {
@@ -15,33 +15,33 @@
   "license": "UNLICENSED",
   "private": true,
   "dependencies": {
+    "electron-updater": "^6.8.9"
+  },
+  "devDependencies": {
     "@heroui/react": "^2.8.10",
     "@internationalized/date": "^3.12.4",
+    "@prisma/client": "6.19.3",
     "@supabase/supabase-js": "^2.116.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
     "dexie": "^4.4.6",
-    "electron-updater": "^6.8.9",
+    "electron": "^44.4.0",
+    "electron-builder": "^26.15.3",
     "framer-motion": "^11.18.2",
     "immer": "^11.1.18",
     "lucide-react": "^1.46.0",
     "matter-js": "^0.20.0",
+    "postcss": "^8.4.47",
+    "prisma": "6.19.3",
     "react": "^18.3.1",
     "react-colorful": "^5.8.1",
     "react-dom": "^18.3.1",
     "react-moveable": "^0.56.0",
     "react-router-dom": "^6.26.2",
     "react-selecto": "^1.26.3",
-    "zustand": "^5.0.15"
-  },
-  "devDependencies": {
-    "@prisma/client": "6.19.3",
-    "@vitejs/plugin-react": "^4.3.1",
-    "autoprefixer": "^10.4.20",
-    "electron": "^44.4.0",
-    "electron-builder": "^26.15.3",
-    "postcss": "^8.4.47",
-    "prisma": "6.19.3",
     "tailwindcss": "^3.4.13",
-    "vite": "^5.4.8"
+    "vite": "^5.4.8",
+    "zustand": "^5.0.15"
   },
   "build": {
     "appId": "com.forestaltezains.fletesv2",
