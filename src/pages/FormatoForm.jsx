@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import {
   Save, X, Plus, Trash2, Loader2, TriangleAlert,
   ClipboardList, Trees, Wallet, Percent, NotebookPen
@@ -80,6 +80,9 @@ export default function FormatoForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const esEdicion = Boolean(id);
+  // Desde el atajo de Inicio llega ?grua=... para empezar con esa grúa puesta.
+  const [searchParams] = useSearchParams();
+  const gruaInicial = searchParams.get('grua') || '';
 
   const [settings, setSettings] = useState({});
   const [datos, setDatos] = useState(datosVacios);
@@ -117,8 +120,10 @@ export default function FormatoForm() {
         setIvaActivo(f.iva_rate > 0);
         setIsrActivo(f.isr_rate > 0);
       } else {
+        const gruaElegida = gruaInicial ? parseGruas(s).find((g) => g.grua === gruaInicial) : null;
         setDatos((d) => ({
           ...d,
+          ...(gruaElegida ? { grua: gruaElegida.grua, productor: gruaElegida.productor || '' } : {}),
           generos: generosPorDefecto(s),
           destino: primerDestino(s),
           iva_rate_pct: ivaCatalogo(s) * 100,

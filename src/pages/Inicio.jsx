@@ -9,6 +9,7 @@ import { calcularFormato, calcularFlete, formatoMoneda, fechaLegible } from '../
 import PageLayout from '../components/PageLayout.jsx';
 import TarjetaStat from '../components/TarjetaStat.jsx';
 import ElegirFletero from '../components/ElegirFletero.jsx';
+import ElegirGrua from '../components/ElegirGrua.jsx';
 import useRealtimeLista from '../hooks/useRealtimeLista.js';
 
 function parseJson(json, fallback) {
@@ -33,6 +34,8 @@ export default function Inicio() {
   const [recientesFletes, setRecientesFletes] = useState(null);
   const [resumenFleteros, setResumenFleteros] = useState({});
   const [elegirFletero, setElegirFletero] = useState(false);
+  const [resumenGruas, setResumenGruas] = useState({});
+  const [elegirGrua, setElegirGrua] = useState(false);
 
   const cargar = useCallback(async () => {
     const [sf, sl, settings, formatos, fletes] = await Promise.all([
@@ -57,6 +60,13 @@ export default function Inicio() {
       r.cantidad += 1;
     }
     setResumenFleteros(resumen);
+    // formatos también llega del más reciente al más antiguo.
+    const porGrua = {};
+    for (const f of formatos) {
+      const r = (porGrua[f.grua] ||= { cantidad: 0, ultimaFecha: f.fecha });
+      r.cantidad += 1;
+    }
+    setResumenGruas(porGrua);
   }, []);
 
   useEffect(() => { cargar(); }, [cargar]);
@@ -70,9 +80,10 @@ export default function Inicio() {
       title="Inicio"
     >
       <div className="grid gap-3 sm:grid-cols-2">
-        <Link
-          to="/extraccion/nuevo"
-          className="group flex items-center justify-between gap-4 rounded-panel bg-brand-600 px-6 py-5 text-white shadow-panel transition-transform hover:-translate-y-0.5 hover:bg-brand-700"
+        <button
+          type="button"
+          onClick={() => setElegirGrua(true)}
+          className="group flex items-center justify-between gap-4 rounded-panel bg-brand-600 px-6 py-5 text-left text-white shadow-panel transition-transform hover:-translate-y-0.5 hover:bg-brand-700"
         >
           <div>
             <div className="text-[13px] font-semibold uppercase tracking-wide text-brand-100">Extracción</div>
@@ -81,7 +92,7 @@ export default function Inicio() {
           <span className="flex h-11 w-11 flex-none items-center justify-center rounded-full bg-white/15 transition-transform group-hover:scale-105">
             <Plus className="h-5 w-5" strokeWidth={2.5} />
           </span>
-        </Link>
+        </button>
         <button
           type="button"
           onClick={() => setElegirFletero(true)}
@@ -154,6 +165,12 @@ export default function Inicio() {
         <ArrowRight className="h-4 w-4 text-ink-400" strokeWidth={2.25} />
       </Link>
 
+      <ElegirGrua
+        isOpen={elegirGrua}
+        onClose={() => setElegirGrua(false)}
+        gruas={catalogos.gruas}
+        resumen={resumenGruas}
+      />
       <ElegirFletero
         isOpen={elegirFletero}
         onClose={() => setElegirFletero(false)}

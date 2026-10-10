@@ -11,6 +11,7 @@ import { iniciarArrastre, elementoDesdeArrastre, BLOQUES } from './arrastre.js';
 import { leerImagen, pesoKb } from '../imagenes.js';
 import { Api } from '../../lib/api.js';
 import { ICONOS } from '../iconos.js';
+import { useConfirm } from '../../components/ConfirmDialog.jsx';
 
 export const ICONOS_TIPO = {
   contenedor: Frame, grupo: Group, rect: Square, elipse: Circle, linea: Minus, poligono: Triangle, estrella: Star,
@@ -353,6 +354,7 @@ function useBiblioteca(plantillaId, recursosActuales) {
 }
 
 function PanelRecursos({ tipo, datos }) {
+  const confirmar = useConfirm();
   const doc = useEditor((s) => s.doc);
   const plantillaId = useEditor((s) => s.plantilla && s.plantilla.id);
   const subir = useSubirImagen();
@@ -412,8 +414,12 @@ function PanelRecursos({ tipo, datos }) {
               type="button"
               aria-label="Eliminar imagen"
               className="absolute right-1 top-1 rounded bg-black/60 p-1 text-white opacity-0 hover:bg-danger group-hover:opacity-100"
-              onClick={() => {
-                if (usados.has(r.id) && !window.confirm('Esta imagen se usa en el diseño. ¿Eliminarla? Los elementos que la usan quedarán vacíos.')) return;
+              onClick={async () => {
+                if (usados.has(r.id) && !(await confirmar({
+                  titulo: '¿Eliminar esta imagen?',
+                  texto: 'Esta imagen se usa en el diseño. Los elementos que la usan quedarán vacíos.',
+                  textoConfirmar: 'Eliminar'
+                }))) return;
                 useEditor.getState().cambiar((d) => { d.recursos = d.recursos.filter((x) => x.id !== r.id); });
               }}
             >
