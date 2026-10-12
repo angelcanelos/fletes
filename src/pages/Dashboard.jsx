@@ -99,7 +99,7 @@ export default function Dashboard() {
     <PageLayout
       title="Extracción"
       action={
-        <Link to="/extraccion/nuevo" className="btn-primary">
+        <Link to={urlNueva(filtros.grua)} className="btn-primary">
           <Plus className="h-4 w-4" strokeWidth={2.5} /> Nueva extracción
         </Link>
       }
@@ -174,7 +174,7 @@ export default function Dashboard() {
                   <Loader2 className="h-5 w-5 animate-spin" strokeWidth={2.25} /> Cargando…
                 </div>
               ) : formatos.length === 0 ? (
-                <EstadoVacio hayFiltrosActivos />
+                <EstadoVacio hayFiltrosActivos grua={filtros.grua} />
               ) : (
                 <div className="overflow-auto rounded-card border border-surface-border">
                 <table className="w-full border-collapse text-[14px]">
@@ -228,14 +228,29 @@ export default function Dashboard() {
   );
 }
 
-function EstadoVacio({ hayFiltrosActivos }) {
+// Dentro de la carpeta de una grúa, "Nueva extracción" abre el formulario
+// con esa grúa (y su productor) ya puestos, igual que Fletes con el fletero.
+function urlNueva(grua) {
+  return grua ? `/extraccion/nuevo?grua=${encodeURIComponent(grua)}` : '/extraccion/nuevo';
+}
+
+function EstadoVacio({ hayFiltrosActivos, grua }) {
   return (
     <div className="p-[40px_20px] text-center text-ink-500">
       <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-brand-50 text-brand-600">
         <TreePine className="h-8 w-8" strokeWidth={1.75} />
       </div>
       {hayFiltrosActivos ? (
-        <>No se encontró ninguna extracción con esos filtros.</>
+        <>
+          No se encontró ninguna extracción con esos filtros.
+          {grua && (
+            <div>
+              <Link to={urlNueva(grua)} className="btn-primary mt-4 inline-flex">
+                <Plus className="h-4 w-4" strokeWidth={2.5} /> Crear extracción
+              </Link>
+            </div>
+          )}
+        </>
       ) : (
         <>
           Aún no hay extracciones guardadas.<br />
