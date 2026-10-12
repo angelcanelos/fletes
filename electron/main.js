@@ -197,25 +197,79 @@ autoUpdater.on('download-progress', (p) => {
 
 autoUpdater.on('update-downloaded', (info) => {
   enviarAlSplash({ fase: 'instalando' });
-  // Instalar tarda de 20 a 50 s, casi todo es Windows revisando los
-  // archivos nuevos. Con quitAndInstall la app se cerraba al instante y en
-  // ese rato no se veía nada: parecía que se había cerrado sola. Por eso se
-  // lanza el instalador directo y la app NO se cierra: el splash sigue
-  // diciendo "Instalando…" hasta que el instalador ya está listo, muestra
-  // su ventanita de progreso y él mismo cierra la app (con --updated lo
-  // hace sin preguntar). Al terminar vuelve a abrirla (--force-run).
+  // Instalar tarda de 20 a 50 s (casi todo es Windows revisando el
+  // instalador y los archivos nuevos). Se instala en silencio y TODO el
+  // avance se ve en el splash: la app no se cierra sola, sigue mostrando
+  // "Instalando…" hasta que el instalador está listo y la cierra él mismo
+  // (con --updated lo hace sin preguntar). Para que el splash no se vaya
+  // con ella, la etapa de instalación la muestra electron/splash-instalando.ps1,
+  // una ventana idéntica en otro proceso. Al terminar, el instalador
+  // vuelve a abrir la app (--force-run y build/installer.nsh).
+  let instalador;
   try {
-    spawn(info.downloadedFile, ['--updated', '--force-run'], { detached: true, stdio: 'ignore' }).unref();
-    // Por si el instalador nunca llega a cerrar la app (lo cancelaron o
-    // falló), no dejarla escondida detrás del splash para siempre.
-    setTimeout(() => {
-      if (actualizando) terminarActualizacion('No se pudo terminar la instalación. Inténtalo más tarde.');
-    }, 3 * 60 * 1000);
+    instalador = spawn(info.downloadedFile, ['--updated', '/S', '--force-run'], { detached: true, stdio: 'ignore' });
+    instalador.unref();
   } catch (err) {
     console.error('[actualizaciones]', err);
-    autoUpdater.quitAndInstall(false, true);
+    autoUpdater.quitAndInstall(true, true);
+    return;
   }
+  // Si el instalador termina y esta app sigue viva, no se instaló nada.
+  const fallo = () => {
+    if (actualizando) terminarActualizacion('No se pudo terminar la instalación. Inténtalo más tarde.');
+  };
+  instalador.on('error', fallo);
+  instalador.on('exit', fallo);
+  setTimeout(fallo, 3 * 60 * 1000);
+  lanzarSplashInstalacion(instalador.pid);
 });
+
+// Copia el splash de instalación a la carpeta temporal (PowerShell no lee
+// archivos dentro del .asar) y lo lanza. En cuanto ya se ve, se oculta el
+// splash de Electron para que no haya dos. Si algo falla, simplemente se
+// queda el de Electron hasta que el instalador cierre la app.
+function lanzarSplashInstalacion(instaladorPid) {
+  try {
+    const tmp = path.join(app.getPath('temp'), 'fletes-actualizacion');
+    fs.mkdirSync(tmp, { recursive: true });
+    const script = path.join(tmp, 'splash-instalando.ps1');
+    const logo = path.join(tmp, 'logo.png');
+    const icono = path.join(tmp, 'icon.ico');
+    const listo = path.join(tmp, 'listo.txt');
+    // Con BOM: Windows PowerShell 5 lee sin BOM como ANSI y rompe los acentos.
+    fs.writeFileSync(script, String.fromCharCode(0xfeff) + fs.readFileSync(path.join(__dirname, 'splash-instalando.ps1'), 'utf8'));
+    fs.writeFileSync(logo, fs.readFileSync(path.join(__dirname, '..', 'dist', 'images', 'logo-tezains.png')));
+    fs.writeFileSync(icono, fs.readFileSync(path.join(__dirname, 'assets', 'icon.ico')));
+    fs.rmSync(listo, { force: true });
+
+    // A través de "cmd /c start": PowerShell lanzado directo como proceso
+    // desprendido se queda sin consola y sale sin mostrar nada, y sin
+    // desprender muere junto con la app cuando el instalador la cierra.
+    // "start /min" le da su propia consola (minimizada y luego oculta con
+    // -WindowStyle Hidden) e independiente de la app.
+    const q = (v) => `"${String(v).replace(/"/g, '')}"`;
+    const comando = [
+      'start', '""', '/min', 'powershell.exe', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-STA', '-WindowStyle', 'Hidden',
+      '-File', q(script), '-InstaladorPid', instaladorPid, '-AppPid', process.pid,
+      '-AppExe', q(process.execPath), '-Logo', q(logo), '-Icono', q(icono), '-Listo', q(listo)
+    ].join(' ');
+    spawn('cmd.exe', ['/d', '/c', comando], {
+      detached: true, stdio: 'ignore', windowsHide: true, windowsVerbatimArguments: true
+    }).unref();
+
+    const inicio = Date.now();
+    const revisar = setInterval(() => {
+      if (fs.existsSync(listo)) {
+        clearInterval(revisar);
+        if (actualizando && splashWindow) splashWindow.hide();
+      } else if (Date.now() - inicio > 15000) {
+        clearInterval(revisar);
+      }
+    }, 150);
+  } catch (err) {
+    console.error('[actualizaciones] splash de instalación', err);
+  }
+}
 
 autoUpdater.on('error', (err) => {
   console.error('[actualizaciones]', err);
@@ -261,6 +315,7 @@ function crearSplash() {
 // Si no hubo nada que instalar (o falló), se muestra el mensaje un
 // momento en el splash y se regresa a la app tal como estaba.
 function terminarActualizacion(mensaje) {
+  if (splashWindow) splashWindow.show();
   enviarAlSplash({ fase: 'mensaje', texto: mensaje });
   setTimeout(() => {
     actualizando = false;
