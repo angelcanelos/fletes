@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "lastCommit": "235c1d177e3bfcd75b0bd25df414694b4d25cbe0",
+  "updatedAt": "2026-10-13T17:58:54Z",
+  "language": "es",
+  "audience": "public",
+  "sections": ["intro", "toc", "descripcion", "capturas", "caracteristicas", "stack", "arquitectura", "flujo", "datos", "estructura", "requisitos", "instalacion", "configuracion", "uso", "despliegue", "licencia"],
+  "sources": {
+    "intro": ["package.json", "public/images/"],
+    "descripcion": ["package.json", "PRODUCT.md"],
+    "capturas": [".clsmd/capturas.mjs", "src/pages/"],
+    "caracteristicas": ["src/pages/", "src/lib/calc.js", "src/lib/folios.js", "src/editor/", "electron/main.js"],
+    "stack": ["package.json"],
+    "arquitectura": ["src/lib/", "src/hooks/", "electron/", "src/App.jsx"],
+    "flujo": ["src/lib/api.js", "src/lib/syncEngine.js", "src/lib/localDb.js", "src/lib/connectivity.js", "src/lib/accesoOffline.js"],
+    "datos": ["prisma/schema.prisma", "prisma/rls_and_realtime.sql"],
+    "estructura": ["src/", "electron/", "prisma/", "scripts/", "src/App.jsx"],
+    "requisitos": ["package.json"],
+    "instalacion": ["prisma/", "package.json"],
+    "configuracion": ["src/lib/supabaseClient.js", "prisma/schema.prisma", "scripts/publicar-release.mjs", ".gitignore"],
+    "uso": ["package.json", "vite.config.mjs", "electron/main.js"],
+    "despliegue": ["scripts/publicar-release.mjs", "package.json", "build/installer.nsh", "electron/main.js"],
+    "licencia": ["package.json"]
+  }
+}
