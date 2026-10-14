@@ -12,6 +12,8 @@ function num(v) {
 export function calcularFormato(data) {
   const d = data || {};
   const ivaRate = d.iva_rate != null ? num(d.iva_rate) : 0.16;
+  // Las extracciones viejas no tienen retención: sin dato, no se aplica.
+  const retencionRate = d.retencion_rate != null ? num(d.retencion_rate) : 0;
   const isrRate = d.isr_rate != null ? num(d.isr_rate) : 0.0125;
 
   const generos = (d.generos || []).map((g) => {
@@ -28,14 +30,15 @@ export function calcularFormato(data) {
   const totalAjustes = ajustes.reduce((s, a) => s + a.monto, 0);
   const subtotal = totalGeneros + totalAjustes;
   const iva = subtotal * ivaRate;
+  const retencion = subtotal * retencionRate;
   const isr = subtotal * isrRate;
-  const totalNeto = subtotal + iva - isr;
+  const totalNeto = subtotal + iva - retencion - isr;
   const saldoFavor = totalNeto;
 
   return {
     generos, ajustes,
     totalGeneros, totalAjustes, subtotal,
-    ivaRate, isrRate, iva, isr,
+    ivaRate, retencionRate, isrRate, iva, retencion, isr,
     totalNeto, saldoFavor
   };
 }

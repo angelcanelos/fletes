@@ -16,15 +16,18 @@ export default function ReciboFormato({
   generos,
   ajustes,
   ivaRate,
+  retencionRate = 0,
   isrRate,
   logoSrc = '/images/logo.png'
 }) {
   const [logoError, setLogoError] = useState(false);
 
-  const r = calcularFormato({ generos, ajustes, iva_rate: ivaRate, isr_rate: isrRate });
+  const r = calcularFormato({ generos, ajustes, iva_rate: ivaRate, retencion_rate: retencionRate, isr_rate: isrRate });
   const M = (v) => Number(v || 0).toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const ivaPct = ivaRate * 100;
   const ivaPctTexto = Number.isInteger(ivaPct) ? ivaPct.toFixed(0) : ivaPct.toFixed(2);
+  const retencionPct = (retencionRate || 0) * 100;
+  const retencionPctTexto = Number.isInteger(retencionPct) ? retencionPct.toFixed(0) : retencionPct.toFixed(2);
 
   return (
     <div className="hoja">
@@ -75,6 +78,9 @@ export default function ReciboFormato({
             <tr><td colSpan={4}>&nbsp;</td></tr>
             <tr><td className="f-label" colSpan={3}>Subtotal</td><td className="f-val">{M(r.subtotal)}</td></tr>
             <tr><td className="f-label" colSpan={3}>Mas iva {ivaPctTexto} %</td><td className="f-val">{M(r.iva)}</td></tr>
+            {retencionRate > 0 && (
+              <tr><td className="f-label" colSpan={3}>Retencion {retencionPctTexto} %</td><td className="f-val">{M(r.retencion)}</td></tr>
+            )}
             {isrRate > 0 && (
               <tr><td className="f-label" colSpan={3}>I S R</td><td className="f-val">{M(r.isr)}</td></tr>
             )}

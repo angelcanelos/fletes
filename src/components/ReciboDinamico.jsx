@@ -43,6 +43,7 @@ export default function ReciboDinamico({ tipo, plantilla, registro, settings = {
       generos={registro.generos}
       ajustes={registro.ajustes}
       ivaRate={registro.iva_rate}
+      retencionRate={registro.retencion_rate}
       isrRate={registro.isr_rate}
     />
   );

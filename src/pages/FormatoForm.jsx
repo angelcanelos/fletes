@@ -64,7 +64,7 @@ const datosVacios = {
   productor: '', grua: '', destino: '', fecha: fechaHoy(), estado: 'guardado',
   generos: [],
   ajustes: [],
-  iva_rate_pct: 16, isr_rate_pct: 1.25,
+  iva_rate_pct: 16, retencion_rate_pct: 4, isr_rate_pct: 1.25,
   observaciones: ''
 };
 
@@ -72,8 +72,21 @@ const datosVacios = {
 function ivaCatalogo(s) {
   return s.iva_rate != null ? Number(s.iva_rate) : 0.16;
 }
+function retencionCatalogo(s) {
+  return s.retencion_rate != null ? Number(s.retencion_rate) : 0.04;
+}
 function isrCatalogo(s) {
   return s.isr_rate != null ? Number(s.isr_rate) : 0.0125;
+}
+
+// Qué impuestos lleva una grúa según su ficha en el catálogo. Las grúas
+// guardadas antes de que existieran estos switches no traen el dato: sin
+// retención y con el ISR del catálogo, como se comportaban hasta ahora.
+function impuestosDeGrua(grua, s) {
+  return {
+    retencion: grua && grua.retencion != null ? Boolean(grua.retencion) : false,
+    isr: grua && grua.isr != null ? Boolean(grua.isr) : isrCatalogo(s) > 0
+  };
 }
 
 export default function FormatoForm() {
@@ -92,6 +105,7 @@ export default function FormatoForm() {
   // Los porcentajes vienen del catálogo (Ajustes); aquí solo se elige si
   // cada impuesto se aplica a esta extracción.
   const [ivaActivo, setIvaActivo] = useState(true);
+  const [retencionActiva, setRetencionActiva] = useState(false);
   const [isrActivo, setIsrActivo] = useState(true);
   const [guardando, setGuardando] = useState(false);
   const toast = useToast();
@@ -113,11 +127,13 @@ export default function FormatoForm() {
           generos: generos.map((g) => ({ nombre: g.nombre, metros: ceroVacio(g.metros), precio: ceroVacio(g.precio) })),
           ajustes: (f.ajustes || []).map((a) => ({ etiqueta: a.etiqueta, monto: ceroVacio(a.monto) })),
           iva_rate_pct: (f.iva_rate > 0 ? f.iva_rate : ivaCatalogo(s)) * 100,
+          retencion_rate_pct: (f.retencion_rate > 0 ? f.retencion_rate : retencionCatalogo(s)) * 100,
           isr_rate_pct: (f.isr_rate > 0 ? f.isr_rate : isrCatalogo(s)) * 100,
           observaciones: f.observaciones || ''
         });
         setFscTexto(f.producto_fsc || s.fsc_texto || '');
         setIvaActivo(f.iva_rate > 0);
+        setRetencionActiva(f.retencion_rate > 0);
         setIsrActivo(f.isr_rate > 0);
       } else {
         const gruaElegida = gruaInicial ? parseGruas(s).find((g) => g.grua === gruaInicial) : null;
@@ -127,10 +143,15 @@ export default function FormatoForm() {
           generos: generosPorDefecto(s),
           destino: primerDestino(s),
           iva_rate_pct: ivaCatalogo(s) * 100,
+          retencion_rate_pct: retencionCatalogo(s) * 100,
           isr_rate_pct: isrCatalogo(s) * 100
         }));
+        // Si llega una grúa por URL, su ficha del catálogo dice si lleva
+        // retención e ISR.
+        const impuestos = impuestosDeGrua(gruaElegida, s);
         setIvaActivo(ivaCatalogo(s) > 0);
-        setIsrActivo(isrCatalogo(s) > 0);
+        setRetencionActiva(impuestos.retencion);
+        setIsrActivo(impuestos.isr);
       }
       setCargando(false);
     })();
@@ -144,6 +165,13 @@ export default function FormatoForm() {
     const gruas = parseGruas(settings);
     const encontrada = gruas.find((g) => g.grua === nombreGrua);
     setDatos((d) => ({ ...d, grua: nombreGrua, productor: encontrada ? encontrada.productor : d.productor }));
+    // Al cambiar de grúa, el catálogo dice si lleva retención e ISR (al
+    // editar se respeta lo que ya tenía guardado el documento).
+    if (encontrada && !esEdicion) {
+      const impuestos = impuestosDeGrua(encontrada, settings);
+      setRetencionActiva(impuestos.retencion);
+      setIsrActivo(impuestos.isr);
+    }
   }
 
 
@@ -197,6 +225,7 @@ export default function FormatoForm() {
         .filter((a) => (a.etiqueta || '').trim())
         .map((a) => ({ etiqueta: a.etiqueta.trim(), monto: parseFloat(a.monto) || 0 })),
       iva_rate: ivaActivo ? (parseFloat(datos.iva_rate_pct) || 0) / 100 : 0,
+      retencion_rate: retencionActiva ? (parseFloat(datos.retencion_rate_pct) || 0) / 100 : 0,
       isr_rate: isrActivo ? (parseFloat(datos.isr_rate_pct) || 0) / 100 : 0,
       observaciones: (datos.observaciones || '').trim()
     };
@@ -323,6 +352,7 @@ export default function FormatoForm() {
           <Panel titulo="Impuestos" icon={Percent}>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-3">
               <SwitchImpuesto nombre="IVA" porcentaje={datos.iva_rate_pct} activo={ivaActivo} onCambiar={setIvaActivo} />
+              <SwitchImpuesto nombre="Retención" porcentaje={datos.retencion_rate_pct} activo={retencionActiva} onCambiar={setRetencionActiva} />
               <SwitchImpuesto nombre="ISR" porcentaje={datos.isr_rate_pct} activo={isrActivo} onCambiar={setIsrActivo} />
             </div>
           </Panel>
@@ -368,6 +398,7 @@ export default function FormatoForm() {
                         generos: datos.generos,
                         ajustes: datos.ajustes,
                         iva_rate: ivaActivo ? (parseFloat(datos.iva_rate_pct) || 0) / 100 : 0,
+                        retencion_rate: retencionActiva ? (parseFloat(datos.retencion_rate_pct) || 0) / 100 : 0,
                         isr_rate: isrActivo ? (parseFloat(datos.isr_rate_pct) || 0) / 100 : 0,
                         observaciones: datos.observaciones
                       }}
@@ -382,6 +413,7 @@ export default function FormatoForm() {
                       generos={datos.generos}
                       ajustes={datos.ajustes}
                       ivaRate={ivaActivo ? (parseFloat(datos.iva_rate_pct) || 0) / 100 : 0}
+                      retencionRate={retencionActiva ? (parseFloat(datos.retencion_rate_pct) || 0) / 100 : 0}
                       isrRate={isrActivo ? (parseFloat(datos.isr_rate_pct) || 0) / 100 : 0}
                     />
                   )}

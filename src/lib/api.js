@@ -181,6 +181,7 @@ export const Api = {
       generos: normalizarGeneros(payload.generos),
       ajustes: normalizarAjustes(payload.ajustes),
       iva_rate: num(payload.iva_rate ?? 0.16),
+      retencion_rate: num(payload.retencion_rate ?? 0),
       isr_rate: num(payload.isr_rate ?? 0.0125),
       observaciones: payload.observaciones || null,
       estado: payload.estado || 'guardado',
@@ -219,6 +220,7 @@ export const Api = {
     if (payload.generos !== undefined) cambios.generos = normalizarGeneros(payload.generos);
     if (payload.ajustes !== undefined) cambios.ajustes = normalizarAjustes(payload.ajustes);
     if (payload.iva_rate !== undefined) cambios.iva_rate = num(payload.iva_rate);
+    if (payload.retencion_rate !== undefined) cambios.retencion_rate = num(payload.retencion_rate);
     if (payload.isr_rate !== undefined) cambios.isr_rate = num(payload.isr_rate);
     if (payload.observaciones !== undefined) cambios.observaciones = payload.observaciones || null;
     if (payload.estado !== undefined) cambios.estado = payload.estado || 'guardado';

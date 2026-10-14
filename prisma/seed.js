@@ -8,6 +8,7 @@ const defaults = {
   empresa_nombre: 'Forestal Tezains',
   fsc_texto: 'PRODUCTO FSC 100% NC-FM/COC/000156',
   iva_rate: '0.16',
+  retencion_rate: '0.04',
   isr_rate: '0.0125',
   generos_default_json: JSON.stringify([
     { nombre: 'PINO', precio: 280 },

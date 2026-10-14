@@ -66,7 +66,7 @@ function renglon(prefijo, y, x, w, h, etiqueta, clave, t = {}, extra = {}) {
 export function plantillaExtraccion2026() {
   const doc = documentoVacio({ papel: 'carta' });
   doc.pagina.ancho = mmAPx(105);
-  doc.pagina.alto = 695;
+  doc.pagina.alto = 722;
   doc.pagina.autoAlto = true;
   doc.pagina.impresion = { papel: 'carta', ajustar: true, margen: 6 };
   doc.paletas = [{ nombre: 'Oficial 2026', colores: [NAVY, '#16324f', '#95ca58', '#2f6b1f', '#d21f1f', '#111111', '#ffffff'] }];
@@ -110,12 +110,13 @@ export function plantillaExtraccion2026() {
   const tR = { tamano: 12, peso: 700 };
   els.push(...renglon('Subtotal', 523, X, W, 27, 'Subtotal', 'subtotal', tR));
   els.push(...renglon('IVA', 550, X, W, 27, { campo: 'iva_pct', prefijo: 'Mas iva ', sufijo: ' %' }, 'iva', tR));
-  els.push(...renglon('ISR', 577, X, W, 27, 'I S R', 'isr', tR, { el: { visibleSi: { campo: 'isr_pct', cond: 'noCero' }, colapsar: true } }));
-  els.push(crearElemento('linea', { nombre: 'Línea total neto', x: X, y: 604, w: W, h: 1, estilo: { borde: { color: '#999999', grosor: 1, tipo: 'solid' } } }));
-  els.push(...renglon('Total neto', 605, X, W, 28, 'Total neto', 'total_neto', { tamano: 13, peso: 900 }));
+  els.push(...renglon('Retención', 577, X, W, 27, { campo: 'retencion_pct', prefijo: 'Retencion ', sufijo: ' %' }, 'retencion', tR, { el: { visibleSi: { campo: 'retencion_pct', cond: 'noCero' }, colapsar: true } }));
+  els.push(...renglon('ISR', 604, X, W, 27, 'I S R', 'isr', tR, { el: { visibleSi: { campo: 'isr_pct', cond: 'noCero' }, colapsar: true } }));
+  els.push(crearElemento('linea', { nombre: 'Línea total neto', x: X, y: 631, w: W, h: 1, estilo: { borde: { color: '#999999', grosor: 1, tipo: 'solid' } } }));
+  els.push(...renglon('Total neto', 632, X, W, 28, 'Total neto', 'total_neto', { tamano: 13, peso: 900 }));
 
   const saldo = crearElemento('contenedor', {
-    nombre: 'Saldo a favor', x: X, y: 646, w: W, h: 34,
+    nombre: 'Saldo a favor', x: X, y: 673, w: W, h: 34,
     estilo: { relleno: { tipo: 'solido', color: NAVY }, recortarHijos: false }
   });
   els.push(saldo);

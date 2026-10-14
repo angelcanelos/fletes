@@ -130,7 +130,7 @@ export default function Inicio() {
             fecha: f.fecha,
             titulo: f.productor,
             subtitulo: f.grua,
-            total: calcularFormato({ generos: f.generos, ajustes: f.ajustes, iva_rate: f.iva_rate, isr_rate: f.isr_rate }).totalNeto,
+            total: calcularFormato({ generos: f.generos, ajustes: f.ajustes, iva_rate: f.iva_rate, retencion_rate: f.retencion_rate, isr_rate: f.isr_rate }).totalNeto,
             editarHref: `/extraccion/${f.id}/editar`,
             imprimirHref: `/extraccion/imprimir/${f.id}`
           })}

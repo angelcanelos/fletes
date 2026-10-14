@@ -36,8 +36,9 @@ model Formato {
   generos      Json     @default("[]")
   ajustes      Json     @default("[]")
 
-  ivaRate      Float    @default(0.16) @map("iva_rate")
-  isrRate      Float    @default(0.0125) @map("isr_rate")
+  ivaRate       Float    @default(0.16) @map("iva_rate")
+  retencionRate Float    @default(0) @map("retencion_rate")
+  isrRate       Float    @default(0.0125) @map("isr_rate")
 
   observaciones String?
   estado        String  @default("guardado")

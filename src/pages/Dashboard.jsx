@@ -16,7 +16,7 @@ import useRealtimeLista from '../hooks/useRealtimeLista.js';
 function totalDe(f) {
   const r = calcularFormato({
     generos: f.generos, ajustes: f.ajustes,
-    iva_rate: f.iva_rate, isr_rate: f.isr_rate
+    iva_rate: f.iva_rate, retencion_rate: f.retencion_rate, isr_rate: f.isr_rate
   });
   return r.totalNeto;
 }

@@ -119,6 +119,8 @@ export const CATALOGO = {
       { clave: 'subtotal', etiqueta: 'Subtotal', grupo: 'Totales', formato: 'moneda' },
       { clave: 'iva_pct', etiqueta: 'IVA %', grupo: 'Impuestos', formato: 'porcentaje', ancho: 60 },
       { clave: 'iva', etiqueta: 'IVA $', grupo: 'Impuestos', formato: 'moneda' },
+      { clave: 'retencion_pct', etiqueta: 'Retención %', grupo: 'Impuestos', formato: 'porcentaje', ancho: 60 },
+      { clave: 'retencion', etiqueta: 'Retención $', grupo: 'Impuestos', formato: 'moneda' },
       { clave: 'isr_pct', etiqueta: 'ISR %', grupo: 'Impuestos', formato: 'porcentaje', ancho: 60 },
       { clave: 'isr', etiqueta: 'ISR $', grupo: 'Impuestos', formato: 'moneda' },
       { clave: 'total_neto', etiqueta: 'Total neto', grupo: 'Totales', formato: 'moneda' },
@@ -243,9 +245,9 @@ function soloNumeroGrua(grua) {
 }
 
 // registro: forma de la fila de `formatos` (productor, grua, fecha,
-// producto_fsc, destino, generos, ajustes, iva_rate, isr_rate…).
+// producto_fsc, destino, generos, ajustes, iva_rate, retencion_rate, isr_rate…).
 export function datosExtraccion(registro = {}, settings = {}) {
-  const r = calcularFormato({ generos: registro.generos, ajustes: registro.ajustes, iva_rate: registro.iva_rate, isr_rate: registro.isr_rate });
+  const r = calcularFormato({ generos: registro.generos, ajustes: registro.ajustes, iva_rate: registro.iva_rate, retencion_rate: registro.retencion_rate, isr_rate: registro.isr_rate });
   return {
     folio: registro.folio || '',
     productor: registro.productor || '',
@@ -267,6 +269,8 @@ export function datosExtraccion(registro = {}, settings = {}) {
     subtotal: r.subtotal,
     iva_pct: r.ivaRate * 100,
     iva: r.iva,
+    retencion_pct: r.retencionRate * 100,
+    retencion: r.retencion,
     isr_pct: r.isrRate * 100,
     isr: r.isr,
     total_neto: r.totalNeto,
@@ -357,6 +361,7 @@ export const EJEMPLO = {
     ],
     ajustes: [{ etiqueta: 'Anticipo', monto: -5000 }],
     iva_rate: 0.16,
+    retencion_rate: 0,
     isr_rate: 0.0125,
     observaciones: 'Entrega en patio 2'
   },
