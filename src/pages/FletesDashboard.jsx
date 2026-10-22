@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Plus, X, ArrowLeft,
-  Printer, SquarePen, Trash2, TreePine, Loader2
+  Printer, TreePine, Loader2
 } from 'lucide-react';
 import { Api } from '../lib/api.js';
 import { normalizar } from '../lib/texto.js';
@@ -13,6 +13,8 @@ import Avatar from '../components/Avatar.jsx';
 import { FiltroBuscar, FiltroFecha, FiltroSelect } from '../components/Filtros.jsx';
 import { useConfirm } from '../components/ConfirmDialog.jsx';
 import { useToast } from '../components/Toast.jsx';
+import BotonFacturado, { esFacturado } from '../components/BotonFacturado.jsx';
+import MenuAcciones from '../components/MenuAcciones.jsx';
 import useRealtimeLista from '../hooks/useRealtimeLista.js';
 
 function totalDe(f, preciosPorGrua) {
@@ -101,6 +103,19 @@ export default function FletesDashboard() {
     }
   }
 
+  // Se cambia en pantalla de inmediato y se regresa si no se pudo guardar.
+  async function alternarFacturado(f) {
+    const estado = esFacturado(f) ? 'guardado' : 'facturado';
+    const conEstado = (valor) => (lista) => lista && lista.map((x) => (x.id === f.id ? { ...x, estado: valor } : x));
+    setFletes(conEstado(estado));
+    try {
+      await Api.actualizarFlete(f.id, { estado });
+    } catch {
+      setFletes(conEstado(f.estado));
+      toast.error('No se pudo cambiar el estado del flete. Intenta de nuevo.');
+    }
+  }
+
   const campo = (name, value) => setFiltros((prev) => ({ ...prev, [name]: value }));
   const hayFiltrosActivos = Object.values(filtros).some(Boolean);
 
@@ -109,8 +124,9 @@ export default function FletesDashboard() {
   const resumenPorFletero = {};
   for (const f of fletes || []) {
     const total = totalDe(f, preciosPorGrua);
-    const r = (resumenPorFletero[f.fletero] ||= { cantidad: 0, total: 0, ultimo: f });
+    const r = (resumenPorFletero[f.fletero] ||= { cantidad: 0, pendientes: 0, total: 0, ultimo: f });
     r.cantidad += 1;
+    if (!esFacturado(f)) r.pendientes += 1;
     r.total += total;
   }
 
@@ -119,9 +135,9 @@ export default function FletesDashboard() {
   const fletesVisibles = (fletes || []).filter((f) =>
     (!fleteroAbierto || f.fletero === fleteroAbierto) && (!filtros.q || coincideFlete(f, filtros.q))
   );
+  const pendientesVisibles = fletesVisibles.filter((f) => !esFacturado(f)).length;
 
-
-  const tablaProps = { preciosPorGrua, eliminandoId, onEliminar: eliminar };
+  const tablaProps = { preciosPorGrua, eliminandoId, onEliminar: eliminar, onAlternarFacturado: alternarFacturado };
 
   return (
     <PageLayout
@@ -159,6 +175,11 @@ export default function FletesDashboard() {
                 <span className="text-lg font-semibold text-ink-900">{fleteroAbierto}</span>
                 <span className="ml-auto text-sm text-ink-500">
                   {fletesVisibles.length} flete{fletesVisibles.length === 1 ? '' : 's'}
+                  {fletesVisibles.length > 0 && (
+                    <> · <span className={pendientesVisibles > 0 ? 'font-semibold text-warning' : 'font-semibold text-success'}>
+                      {pendientesVisibles > 0 ? `${pendientesVisibles} pendiente${pendientesVisibles === 1 ? '' : 's'}` : 'todos facturados'}
+                    </span></>
+                  )}
                 </span>
               </div>
               {fletes === null ? <Cargando /> : fletesVisibles.length === 0
@@ -181,7 +202,7 @@ export default function FletesDashboard() {
                         icono={<Avatar nombre={f.nombre} indice={fleteros.indexOf(f)} activo={Boolean(r)} />}
                         titulo={f.nombre}
                         subtitulo={r ? `Último: ${fechaLegible(r.ultimo.fecha)}` : 'Sin fletes registrados'}
-                        cantidad={`${r ? r.cantidad : 0} flete${r && r.cantidad === 1 ? '' : 's'}`}
+                        cantidad={`${r ? r.cantidad : 0} flete${r && r.cantidad === 1 ? '' : 's'}${r && r.pendientes ? ` · ${r.pendientes} pendiente${r.pendientes === 1 ? '' : 's'}` : ''}`}
                         total={r ? `$${formatoMoneda(r.total)}` : null}
                         onAbrir={() => setFiltros((prev) => ({ ...prev, q: '', fletero: f.nombre }))}
                       />
@@ -206,7 +227,7 @@ export default function FletesDashboard() {
   );
 }
 
-function TablaFletes({ fletes, preciosPorGrua, eliminandoId, onEliminar, conFletero }) {
+function TablaFletes({ fletes, preciosPorGrua, eliminandoId, onEliminar, onAlternarFacturado, conFletero }) {
   const columnas = ['Folio', 'Fecha', ...(conFletero ? ['Fletero'] : []), 'Viajes', 'Total', ''];
   return (
     <div className="overflow-auto rounded-card border border-surface-border bg-white">
@@ -228,27 +249,19 @@ function TablaFletes({ fletes, preciosPorGrua, eliminandoId, onEliminar, conFlet
               <td className="px-4 py-3.5 font-semibold text-ink-900">${formatoMoneda(totalDe(f, preciosPorGrua))}</td>
               <td className="px-4 py-3.5">
                 <div className="flex justify-end gap-1.5">
+                  <BotonFacturado doc={f} onAlternar={onAlternarFacturado} />
                   <a
                     className="flex h-9 w-9 items-center justify-center rounded-full bg-brand-50 text-brand-600 transition-colors hover:bg-brand-100"
                     href={`/fletes/imprimir/${f.id}`} target="_blank" rel="noreferrer" title="Imprimir flete" aria-label="Imprimir flete"
                   >
                     <Printer className="h-4 w-4" strokeWidth={2} />
                   </a>
-                  <Link
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-ink-700 transition-colors hover:bg-ink-100"
-                    to={`/fletes/${f.id}/editar`} title="Editar flete" aria-label="Editar flete"
-                  >
-                    <SquarePen className="h-4 w-4" strokeWidth={2} />
-                  </Link>
-                  <button
-                    type="button"
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-danger-bg text-danger transition-colors hover:bg-[#fbd0d0] disabled:opacity-50"
-                    onClick={() => onEliminar(f)}
-                    disabled={eliminandoId === f.id}
-                    title="Eliminar flete" aria-label="Eliminar flete"
-                  >
-                    <Trash2 className="h-4 w-4" strokeWidth={2} />
-                  </button>
+                  <MenuAcciones
+                    nombre={`flete ${f.folio || f.id}`}
+                    urlEditar={`/fletes/${f.id}/editar`}
+                    onEliminar={() => onEliminar(f)}
+                    eliminando={eliminandoId === f.id}
+                  />
                 </div>
               </td>
             </tr>

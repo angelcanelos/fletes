@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Plus, X, ArrowLeft, FolderOpen,
-  Printer, SquarePen, Trash2, TreePine, Loader2
+  Printer, TreePine, Loader2
 } from 'lucide-react';
 import { Api } from '../lib/api.js';
 import { calcularFormato, formatoMoneda, fechaLegible } from '../lib/calc.js';
@@ -11,6 +11,8 @@ import TarjetaCarpeta from '../components/TarjetaCarpeta.jsx';
 import { FiltroBuscar, FiltroFecha, FiltroSelect } from '../components/Filtros.jsx';
 import { useConfirm } from '../components/ConfirmDialog.jsx';
 import { useToast } from '../components/Toast.jsx';
+import BotonFacturado, { esFacturado } from '../components/BotonFacturado.jsx';
+import MenuAcciones from '../components/MenuAcciones.jsx';
 import useRealtimeLista from '../hooks/useRealtimeLista.js';
 
 function totalDe(f) {
@@ -75,6 +77,19 @@ export default function Dashboard() {
     }
   }
 
+  // Se cambia en pantalla de inmediato y se regresa si no se pudo guardar.
+  async function alternarFacturado(f) {
+    const estado = esFacturado(f) ? 'guardado' : 'facturado';
+    const conEstado = (valor) => (lista) => lista && lista.map((x) => (x.id === f.id ? { ...x, estado: valor } : x));
+    setFormatos(conEstado(estado));
+    try {
+      await Api.actualizarFormato(f.id, { estado });
+    } catch {
+      setFormatos(conEstado(f.estado));
+      toast.error('No se pudo cambiar el estado de la extracción. Intenta de nuevo.');
+    }
+  }
+
   const campo = (name, value) => setFiltros((prev) => ({ ...prev, [name]: value }));
   const hayFiltrosActivos = Object.values(filtros).some(Boolean);
   const vistaCarpetas = !hayFiltrosActivos;
@@ -89,11 +104,13 @@ export default function Dashboard() {
   const resumenPorGrua = {};
   if (vistaCarpetas && formatos) {
     for (const f of formatos) {
-      if (!resumenPorGrua[f.grua]) resumenPorGrua[f.grua] = { cantidad: 0, total: 0 };
+      if (!resumenPorGrua[f.grua]) resumenPorGrua[f.grua] = { cantidad: 0, pendientes: 0, total: 0 };
       resumenPorGrua[f.grua].cantidad += 1;
+      if (!esFacturado(f)) resumenPorGrua[f.grua].pendientes += 1;
       resumenPorGrua[f.grua].total += totalDe(f);
     }
   }
+  const pendientes = (formatos || []).filter((f) => !esFacturado(f)).length;
 
   return (
     <PageLayout
@@ -150,7 +167,7 @@ export default function Dashboard() {
                       }
                       titulo={g.grua}
                       subtitulo={g.productor || 'Sin productor asignado'}
-                      cantidad={`${r.cantidad} ${r.cantidad === 1 ? 'extracción' : 'extracciones'}`}
+                      cantidad={`${r.cantidad} ${r.cantidad === 1 ? 'extracción' : 'extracciones'}${r.pendientes ? ` · ${r.pendientes} pendiente${r.pendientes === 1 ? '' : 's'}` : ''}`}
                       total={r.cantidad > 0 ? `$${formatoMoneda(r.total)}` : null}
                       onAbrir={() => abrirGrua(g.grua)}
                     />
@@ -167,6 +184,13 @@ export default function Dashboard() {
                   </button>
                   <span className="text-lg font-semibold text-ink-900">{grupoAbierto.grua}</span>
                   <span className="text-sm text-ink-500">{grupoAbierto.productor}</span>
+                  {formatos && formatos.length > 0 && (
+                    <span className="ml-auto text-sm text-ink-500">
+                      {formatos.length} {formatos.length === 1 ? 'extracción' : 'extracciones'} · <span className={pendientes > 0 ? 'font-semibold text-warning' : 'font-semibold text-success'}>
+                        {pendientes > 0 ? `${pendientes} pendiente${pendientes === 1 ? '' : 's'}` : 'todas facturadas'}
+                      </span>
+                    </span>
+                  )}
                 </div>
               )}
               {formatos === null ? (
@@ -180,7 +204,7 @@ export default function Dashboard() {
                 <table className="w-full border-collapse text-[14px]">
                   <thead>
                     <tr>
-                      {['Folio', 'Fecha', 'Productor', 'Grúa', 'Total neto', 'Acciones'].map((h) => (
+                      {['Folio', 'Fecha', 'Productor', 'Grúa', 'Total neto', ''].map((h) => (
                         <th key={h} className="border-b border-surface-border px-4 py-3 text-left text-[12px] font-semibold uppercase tracking-[0.08em] text-ink-500">{h}</th>
                       ))}
                     </tr>
@@ -194,24 +218,20 @@ export default function Dashboard() {
                         <td className="px-4 py-3.5">{f.grua}</td>
                         <td className="px-4 py-3.5 font-bold">${formatoMoneda(totalDe(f))}</td>
                         <td className="px-4 py-3.5">
-                          <div className="flex flex-wrap gap-1.5">
+                          <div className="flex items-center justify-end gap-1.5">
+                            <BotonFacturado doc={f} onAlternar={alternarFacturado} conTexto />
                             <a
                               className="flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1.5 text-[12.5px] font-bold text-brand-700 transition-colors hover:bg-brand-100"
                               href={`/extraccion/imprimir/${f.id}`} target="_blank" rel="noreferrer" title="Imprimir extracción"
                             >
                               <Printer className="h-3.5 w-3.5" strokeWidth={2.25} /> Imprimir
                             </a>
-                            <Link className="btn-secondary px-3 py-1.5 text-[12.5px]" to={`/extraccion/${f.id}/editar`} title="Editar extracción">
-                              <SquarePen className="h-3.5 w-3.5" strokeWidth={2.25} /> Editar
-                            </Link>
-                            <button
-                              className="btn-danger px-3 py-1.5 text-[12.5px]"
-                              onClick={() => eliminar(f)}
-                              disabled={eliminandoId === f.id}
-                              title="Eliminar extracción"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" strokeWidth={2.25} /> Eliminar
-                            </button>
+                            <MenuAcciones
+                              nombre={`extracción ${f.folio || f.id}`}
+                              urlEditar={`/extraccion/${f.id}/editar`}
+                              onEliminar={() => eliminar(f)}
+                              eliminando={eliminandoId === f.id}
+                            />
                           </div>
                         </td>
                       </tr>
